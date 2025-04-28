@@ -13,19 +13,41 @@ st.set_page_config(
 )
 
 # ------------------------------------------------------------------------------
-# ▶ Custom CSS: theme and title
+# ▶ Custom CSS: forest green background and white accents
 # ------------------------------------------------------------------------------
 st.markdown(
     """
     <style>
+        /* App background and text */
         [data-testid="stAppViewContainer"] {
-            background-color: #228B22; /* forest green */
+            background-color: #228B22 !important;
             color: #FFFFFF;
         }
+        /* Title */
         h1 {
+            color: #FFFFFF;
             font-size: 80px;
             text-align: center;
             margin-bottom: 20px;
+        }
+        /* Card styling with white border */
+        .card {
+            background-color: #FFFFFF;
+            color: #1B4332;
+            border: 2px solid #FFFFFF;
+            border-radius: 12px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+            padding: 16px;
+            margin-bottom: 16px;
+        }
+        /* Buttons with white accent border */
+        button {
+            border: 2px solid #FFFFFF !important;
+            border-radius: 8px !important;
+        }
+        /* Horizontal rules (---) as white lines */
+        hr {
+            border-top: 2px solid #FFFFFF !important;
         }
     </style>
     """,
@@ -37,7 +59,6 @@ st.markdown(
 # ------------------------------------------------------------------------------
 conn = sqlite3.connect('assignments.db', check_same_thread=False)
 c = conn.cursor()
-# ensure columns exist
 for col, props in [
     ('type',      "TEXT NOT NULL DEFAULT 'Assignment'"),
     ('due_time',  "TEXT NOT NULL DEFAULT '23:59:00'"),
@@ -47,7 +68,6 @@ for col, props in [
         c.execute(f"ALTER TABLE assignments ADD COLUMN {col} {props}")
     except sqlite3.OperationalError:
         pass
-# create assignments table
 c.execute(
     """
     CREATE TABLE IF NOT EXISTS assignments (
@@ -61,7 +81,6 @@ c.execute(
     )
     """
 )
-# create plants table
 c.execute(
     """
     CREATE TABLE IF NOT EXISTS plants (
@@ -74,7 +93,7 @@ c.execute(
 conn.commit()
 
 # ------------------------------------------------------------------------------
-# ▶ Plant breeds and emojis (including apple emojis)
+# ▶ Plant breeds and corresponding emojis
 # ------------------------------------------------------------------------------
 PLANT_BREEDS = [
     "Monstera deliciosa",
@@ -85,30 +104,42 @@ PLANT_BREEDS = [
     "ZZ Plant",
     "Peace Lily",
     "Red Apple",
-    "Green Apple"
+    "Green Apple",
+    "Rose",
+    "Tulip",
+    "Sunflower",
+    "Daisy",
+    "Cherry Blossom",
+    "Banana",
+    "Grapes",
+    "Strawberry",
+    "Cactus",
+    "Four Leaf Clover",
+    "Herb",
+    "Maple Leaf"
 ]
 EMOJIS = [
-    "🌳","🌲","🌴","🎄","🌵","🌿","🍀","🍎","🍏"
+    "🌱","🌿","🍃","🌱","🌴","🌿","🌼",
+    "🍎","🍏","🌹","🌷","🌻","🌼","🌸",
+    "🍌","🍇","🍓","🌵","🍀","🌾","🍁"
 ]
 EMOJI_MAP = {PLANT_BREEDS[i]: EMOJIS[i] for i in range(len(PLANT_BREEDS))}
 
 # ------------------------------------------------------------------------------
-# ▶ Award plant after every 5 completions
+# ▶ Award a new plant for every 5 completed assignments
 # ------------------------------------------------------------------------------
 def award_plant():
-    owned = [row[0] for row in c.execute("SELECT name FROM plants").fetchall()]
-    # determine how many plants should be awarded based on completed assignments
+    # count completed assignments
     total_completed = c.execute("SELECT COUNT(*) FROM assignments WHERE completed=1").fetchone()[0]
-    expected_awards = total_completed // 5
-    # award until owned count matches expected
-    while len(owned) < expected_awards:
-        # choose next unowned
+    # determine how many awards
+    awards = total_completed // 5
+    owned = [row[0] for row in c.execute("SELECT name FROM plants").fetchall()]
+    while len(owned) < awards:
         choices = [b for b in PLANT_BREEDS if b not in owned]
         if not choices:
             break
         breed = random.choice(choices)
-        c.execute("INSERT INTO plants (name, awarded_at) VALUES (?,?)",
-                  (breed, datetime.now().isoformat()))
+        c.execute("INSERT INTO plants (name, awarded_at) VALUES (?,?)", (breed, datetime.now().isoformat()))
         conn.commit()
         owned.append(breed)
         st.balloons()
@@ -124,12 +155,12 @@ def load_assignments(flag):
     ).fetchall()
 
 # ------------------------------------------------------------------------------
-# ▶ App header and tabs
+# ▶ App header and navigation tabs
 # ------------------------------------------------------------------------------
 st.markdown('<h1>🌱 Plant-Based Assignment Tracker 🌱</h1>', unsafe_allow_html=True)
 tabs = st.tabs(["Add","Upcoming","Completed","Plant Catalog","Collected Plants"])
 
-# Add tab: new assignment form
+# Add tab
 with tabs[0]:
     st.subheader("➕ Add a New Assignment")
     with st.form("add_form", clear_on_submit=True):
@@ -167,7 +198,7 @@ with tabs[1]:
             m = (diff.seconds % 3600) // 60
             if m: parts.append(f"{m}m")
             rem = " ".join(parts) if parts else "Now"
-            st.markdown(f"**{course} - {assign} ({a_type})**")
+            st.markdown(f"**{course} - {assign} ({a_type})**  ")
             st.markdown(f"Due: {dt.strftime('%Y-%m-%d %H:%M')} | Remaining: {rem}")
             c1, c2 = st.columns([5,1])
             if c1.button("✅ Done", key=f"done_{id_}"):
@@ -195,13 +226,13 @@ with tabs[2]:
                 conn.commit()
                 st.experimental_rerun()
 
-# Plant Catalog tab: simple list with emojis
+# Plant Catalog tab: list breeds with emojis
 with tabs[3]:
     st.subheader("🌿 Plant Catalog")
     for breed in PLANT_BREEDS:
         st.markdown(f"{EMOJI_MAP[breed]} {breed}")
 
-# Collected Plants tab: emoji list
+# Collected Plants tab: list earned emojis and names
 with tabs[4]:
     st.subheader("🌳 Collected Plants")
     earned = [r[0] for r in c.execute("SELECT name FROM plants").fetchall()]
