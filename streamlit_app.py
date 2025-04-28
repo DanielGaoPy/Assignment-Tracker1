@@ -32,14 +32,6 @@ st.markdown(
             text-align: center;
             margin-bottom: 20px;
         }
-        .stats-right {
-            position: fixed;
-            top: 20px;
-            right: 30px;
-            color: #FFFFFF;
-            font-size: 24px;
-            font-weight: bold;
-        }
         .stats-left {
             position: fixed;
             top: 20px;
@@ -58,7 +50,6 @@ st.markdown(
             margin: 5px;
         }
         .card {
-            color: #1B4332;
             border: 2px solid #FFFFFF;
             border-radius: 12px;
             box-shadow: 0 4px 8px rgba(0,0,0,0.15);
@@ -142,6 +133,8 @@ EMOJIS = [
     "🌹","🌷","🌻","🌸","🌻","🍌","🍇","🍓","🌵","🍀","🍁"
 ]
 EMOJI_MAP = {breed: EMOJIS[i % len(EMOJIS)] for i, breed in enumerate(PLANT_BREEDS)}
+# Assign a fixed rarity to each catalog plant
+CATALOG_RARITY = {breed: random.choices(RARITY_CATS, weights=RARITY_WEIGHTS, k=1)[0] for breed in PLANT_BREEDS}
 
 # ------------------------------------------------------------------------------
 # ▶ Award free plants
@@ -192,8 +185,6 @@ def roll_plant():
 # ------------------------------------------------------------------------------
 bal = get_balance()
 st.markdown(f"<div class='stats-left'>Points: {bal}</div>", unsafe_allow_html=True)
-st.markdown('<div class="stats-right"></div>', unsafe_allow_html=True)
-# right stats removed per request
 st.markdown('<h1>🌱 Plant-Based Assignment Tracker 🌱</h1>', unsafe_allow_html=True)
 
 # ------------------------------------------------------------------------------
@@ -264,11 +255,13 @@ with tabs[3]:
     st.markdown("---")
     grid = st.columns(4)
     for i, breed in enumerate(PLANT_BREEDS):
+        rarity = CATALOG_RARITY.get(breed, "Common")
+        color = COLORS.get(rarity, COLORS['Common'])
         col = grid[i % 4]
         with col:
             st.markdown(
-                f"<div class='card' style='background-color:{COLORS['Common']}'>"
-                f"<p style='font-size:12px;color:#1B4332'>{'Common'}</p>"
+                f"<div class='card' style='background-color:{color}'>"
+                f"<p style='font-size:12px;color:#1B4332'>{rarity}</p>"
                 f"<div style='font-size:48px'>{EMOJI_MAP[breed]}</div>"
                 f"<h4 style='color:#1B4332'>{breed}</h4></div>",
                 unsafe_allow_html=True
