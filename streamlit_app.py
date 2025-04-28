@@ -7,7 +7,7 @@ from datetime import date, datetime, time as dtime
 # ▶ Page configuration (must be first Streamlit command)
 # ------------------------------------------------------------------------------
 st.set_page_config(
-    page_title="Plant-Based Assignment Tracker",
+    page_title="🌱 Plant-Based Assignment Tracker",
     page_icon="🌿",
     layout="wide"
 )
@@ -18,21 +18,21 @@ st.set_page_config(
 st.markdown(
     """
     <style>
-      .stApp {
-        background-color: #F0FBF3;
-      }
-      button.css-1emrehy {
-        background-color: #A8D5BA !important;
-        color: #1B4332 !important;
-        border-radius: 10px;
-        padding: 5px 10px;
-      }
-      .stMetric {
-        background-color: #D8F3DC;
-        border-radius: 10px;
-        padding: 5px 10px;
-        color: #1B4332;
-      }
+        /* App background */
+        .stApp {
+            background-color: #F0FBF3;
+        }
+        /* Button styling */
+        .stButton>button {
+            background-color: #A8D5BA;
+            color: #1B4332;
+            border-radius: 10px;
+            padding: 5px 10px;
+        }
+        /* Tab header color */
+        .css-1dq8tca {
+            color: #1B4332 !important;
+        }
     </style>
     """,
     unsafe_allow_html=True
@@ -55,7 +55,7 @@ for col, props in [
     except sqlite3.OperationalError:
         pass
 
-# Create assignments table
+# Create assignments table if not exists
 c.execute(
     """
     CREATE TABLE IF NOT EXISTS assignments (
@@ -69,7 +69,7 @@ c.execute(
     )
     """
 )
-# Create plants table
+# Create plants table if not exists
 c.execute(
     """
     CREATE TABLE IF NOT EXISTS plants (
@@ -86,56 +86,59 @@ conn.commit()
 # ▶ Plant catalog
 # ------------------------------------------------------------------------------
 PLANTS = [
-    {"name": "Monstera deliciosa", "url": "https://images.unsplash.com/photo-1579370318442-73a6ff72b0a0?auto=format&fit=crop&w=400&q=80"},
+    {"name": "Monstera deliciosa",       "url": "https://images.unsplash.com/photo-1579370318442-73a6ff72b0a0?auto=format&fit=crop&w=400&q=80"},
     {"name": "Ficus lyrata (Fiddle Leaf Fig)", "url": "https://images.unsplash.com/photo-1534081333815-ae5019106622?auto=format&fit=crop&w=400&q=80"},
-    {"name": "Golden Pothos", "url": "https://images.unsplash.com/photo-1556912167-f556f1f39d6b?auto=format&fit=crop&w=400&q=80"},
-    {"name": "Snake Plant", "url": "https://images.unsplash.com/photo-1590254074496-c36d4871eaf5?auto=format&fit=crop&w=400&q=80"},
-    {"name": "Dragon Tree", "url": "https://images.unsplash.com/photo-1600607689867-020a729b3d4d?auto=format&fit=crop&w=400&q=80"},
-    {"name": "ZZ Plant", "url": "https://images.unsplash.com/photo-1592423492834-77e6ec2ffc3e?auto=format&fit=crop&w=400&q=80"},
-    {"name": "Peace Lily", "url": "https://images.unsplash.com/photo-1602524815465-f2b36bb874f9?auto=format&fit=crop&w=400&q=80"},
-    {"name": "Zebra Haworthia", "url": "https://images.unsplash.com/photo-1560844517-08c756ab6b27?auto=format&fit=crop&w=400&q=80"},
-    {"name": "Aloe vera", "url": "https://images.unsplash.com/photo-1542219550-2ab3012dff5e?auto=format&fit=crop&w=400&q=80"},
-    {"name": "Heartleaf Philodendron", "url": "https://images.unsplash.com/photo-1556886564-6a2053850d29?auto=format&fit=crop&w=400&q=80"},
-    {"name": "Boston Fern", "url": "https://images.unsplash.com/photo-1501004318641-b39e6451bec6?auto=format&fit=crop&w=400&q=80"},
-    {"name": "String of Pearls", "url": "https://images.unsplash.com/photo-1542831371-29b0f74f9713?auto=format&fit=crop&w=400&q=80"},
-    {"name": "Rubber Plant", "url": "https://images.unsplash.com/photo-1587285133999-32d66b2655de?auto=format&fit=crop&w=400&q=80"},
-    {"name": "Spider Plant", "url": "https://images.unsplash.com/photo-1493927732325-8a15479f4d49?auto=format&fit=crop&w=400&q=80"}
+    {"name": "Golden Pothos",            "url": "https://images.unsplash.com/photo-1556912167-f556f1f39d6b?auto=format&fit=crop&w=400&q=80"},
+    {"name": "Snake Plant",              "url": "https://images.unsplash.com/photo-1590254074496-c36d4871eaf5?auto=format&fit=crop&w=400&q=80"},
+    {"name": "Dragon Tree",              "url": "https://images.unsplash.com/photo-1600607689867-020a729b3d4d?auto=format&fit=crop&w=400&q=80"},
+    {"name": "ZZ Plant",                 "url": "https://images.unsplash.com/photo-1592423492834-77e6ec2ffc3e?auto=format&fit=crop&w=400&q=80"},
+    {"name": "Peace Lily",               "url": "https://images.unsplash.com/photo-1602524815465-f2b36bb874f9?auto=format&fit=crop&w=400&q=80"},
+    {"name": "Zebra Haworthia",          "url": "https://images.unsplash.com/photo-1560844517-08c756ab6b27?auto=format&fit=crop&w=400&q=80"},
+    {"name": "Aloe vera",                "url": "https://images.unsplash.com/photo-1542219550-2ab3012dff5e?auto=format&fit=crop&w=400&q=80"},
+    {"name": "Heartleaf Philodendron",   "url": "https://images.unsplash.com/photo-1556886564-6a2053850d29?auto=format&fit=crop&w=400&q=80"},
+    {"name": "Boston Fern",              "url": "https://images.unsplash.com/photo-1501004318641-b39e6451bec6?auto=format&fit=crop&w=400&q=80"},
+    {"name": "String of Pearls",         "url": "https://images.unsplash.com/photo-1542831371-29b0f74f9713?auto=format&fit=crop&w=400&q=80"},
+    {"name": "Rubber Plant",             "url": "https://images.unsplash.com/photo-1587285133999-32d66b2655de?auto=format&fit=crop&w=400&q=80"},
+    {"name": "Spider Plant",             "url": "https://images.unsplash.com/photo-1493927732325-8a15479f4d49?auto=format&fit=crop&w=400&q=80"}
 ]
 
-# ------------------------------------------------------------------------------
-# ▶ Award plant on completion
-# ------------------------------------------------------------------------------
+# Award a plant when completing an assignment
 def award_plant():
-    owned = [r[0] for r in c.execute("SELECT name FROM plants").fetchall()]
+    owned = [row[0] for row in c.execute("SELECT name FROM plants").fetchall()]
     choices = [p for p in PLANTS if p['name'] not in owned]
     if not choices:
         st.info("All plants collected! 🌱")
         return
-    choice = random.choice(choices)
+    plant = random.choice(choices)
     c.execute(
         "INSERT INTO plants (name, image_url, awarded_at) VALUES (?, ?, ?)",
-        (choice['name'], choice['url'], datetime.now().isoformat())
+        (plant['name'], plant['url'], datetime.now().isoformat())
     )
     conn.commit()
     st.balloons()
-    st.success(f"New plant unlocked: {choice['name']} 🌿")
+    st.success(f"New plant unlocked: {plant['name']} 🌿")
 
-# ------------------------------------------------------------------------------
-# ▶ App layout
-# ------------------------------------------------------------------------------
+# Helper to load assignments
+
+def load_assignments(flag):
+    return c.execute(
+        "SELECT id, course, assignment, type, due_date, due_time FROM assignments WHERE completed=? ORDER BY due_date, due_time",
+        (flag,)
+    ).fetchall()
+
+# App Title and Tabs
 st.title("🌱 Plant-Based Assignment Tracker 🌱")
-
 tabs = st.tabs(["Add", "Upcoming", "Completed", "Garden"])
 
-# --- Add Tab ---
+# Add Tab
 with tabs[0]:
-    with st.form('form'):
+    with st.form('add_form', clear_on_submit=True):
         st.subheader('Add Assignment')
-        course    = st.text_input('Course Name')
-        title     = st.text_input('Assignment Title')
-        a_type    = st.selectbox('Type', ['Quiz','Mid-Term','Final','Test','Project','Paper'])
-        due_date  = st.date_input('Due Date', date.today())
-        due_time  = st.time_input('Due Time', dtime(23,59))
+        course     = st.text_input('Course Name')
+        title      = st.text_input('Assignment Title')
+        a_type     = st.selectbox('Type', ['Quiz','Mid-Term','Final','Test','Project','Paper'])
+        due_date   = st.date_input('Due Date', date.today())
+        due_time   = st.time_input('Due Time', dtime(23,59))
         if st.form_submit_button('Add'):
             if course and title:
                 c.execute(
@@ -147,22 +150,14 @@ with tabs[0]:
             else:
                 st.error('Please enter course and title')
 
-# Helper to load assignments
-
-def load(flag):
-    return c.execute(
-        "SELECT id, course, assignment, type, due_date, due_time FROM assignments WHERE completed=? ORDER BY due_date, due_time",
-        (flag,)
-    ).fetchall()
-
-# --- Upcoming Tab ---
+# Upcoming Tab
 with tabs[1]:
     st.subheader('Upcoming Assignments')
-    rows = load(0)
-    if not rows:
+    upcoming = load_assignments(0)
+    if not upcoming:
         st.info('No upcoming assignments')
     else:
-        for id_, course, title, a_type, d_date, d_time in rows:
+        for id_, course, title, a_type, d_date, d_time in upcoming:
             dt = datetime.fromisoformat(f"{d_date}T{d_time}")
             diff = dt - datetime.now()
             weeks = diff.days // 7
@@ -175,37 +170,37 @@ with tabs[1]:
                 c2.markdown(f"{title} ({a_type})")
                 c3.markdown(f"Due: {dt.strftime('%Y-%m-%d %H:%M')}")
                 c4.metric('Remaining', f"{weeks}w {days}d {hrs}h {mins}m")
-                if c5.button('✅', key=f'c{id_}'):
+                if c5.button('✅', key=f'done_{id_}'):
                     c.execute("UPDATE assignments SET completed=1 WHERE id=?", (id_,))
                     conn.commit()
                     award_plant()
                     st.experimental_rerun()
-                if c5.button('❌', key=f'd{id_}'):
+                if c5.button('❌', key=f'del_{id_}'):
                     c.execute("DELETE FROM assignments WHERE id=?", (id_,))
                     conn.commit()
                     st.experimental_rerun()
             st.divider()
 
-# --- Completed Tab ---
+# Completed Tab
 with tabs[2]:
     st.subheader('Completed Assignments')
-    rows = load(1)
-    if not rows:
+    completed = load_assignments(1)
+    if not completed:
         st.info('No completed assignments')
     else:
-        for id_, course, title, a_type, d_date, d_time in rows:
+        for id_, course, title, a_type, d_date, d_time in completed:
             with st.container():
                 c1, c2, c3, c4 = st.columns([2,4,3,1])
                 c1.markdown(f"~~{course}~~")
                 c2.markdown(f"~~{title}~~ ({a_type})")
-                c3.markdown(f"Completed\n{d_date} {d_time}")
-                if c4.button('🗑️', key=f'del{id_}'):
+                c3.markdown(f"Completed: {d_date} {d_time}")
+                if c4.button('🗑️', key=f'delc_{id_}'):
                     c.execute("DELETE FROM assignments WHERE id=?", (id_,))
                     conn.commit()
                     st.experimental_rerun()
             st.divider()
 
-# --- Garden Tab ---
+# Garden Tab
 with tabs[3]:
     st.subheader('Your Garden')
     plants = c.execute("SELECT name, image_url FROM plants").fetchall()
