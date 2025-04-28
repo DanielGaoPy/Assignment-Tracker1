@@ -8,20 +8,21 @@ from datetime import date, datetime, time as dtime
 # ------------------------------------------------------------------------------
 st.markdown("""
 <style>
-.stApp { background-color: #F0FBF3; }
-.stButton>button {
-    background-color: #A8D5BA;
-    color: #1B4332;
-    border: none;
+  .stApp {
+    background-color: #F0FBF3;
+  }
+  .css-1emrehy button {
+    background-color: #A8D5BA !important;
+    color: #1B4332 !important;
     border-radius: 10px;
     padding: 5px 10px;
-}
-.stMetric {
+  }
+  .stMetric {
     background-color: #D8F3DC;
     border-radius: 10px;
     padding: 5px 10px;
     color: #1B4332;
-}
+  }
 </style>
 """, unsafe_allow_html=True)
 
@@ -31,186 +32,179 @@ st.markdown("""
 conn = sqlite3.connect('assignments.db', check_same_thread=False)
 c = conn.cursor()
 
-# Migration: Add columns if they don't exist
-for column, props in [
-    ("type",     "TEXT NOT NULL DEFAULT 'Assignment'"),
-    ("due_time", "TEXT NOT NULL DEFAULT '00:00:00'"),
-    ("completed","INTEGER NOT NULL DEFAULT 0")
+# Migration: Add missing columns
+for col, props in [
+    ('type', "TEXT NOT NULL DEFAULT 'Assignment'"),
+    ('due_time', "TEXT NOT NULL DEFAULT '23:59:00'"),
+    ('completed', "INTEGER NOT NULL DEFAULT 0")
 ]:
     try:
-        c.execute(f"ALTER TABLE assignments ADD COLUMN {column} {props}")
+        c.execute(f"ALTER TABLE assignments ADD COLUMN {col} {props}")
     except sqlite3.OperationalError:
         pass
 
-# Create main assignments table if not exists
+# Create table if not exist
 c.execute("""
-    CREATE TABLE IF NOT EXISTS assignments (
-        id           INTEGER PRIMARY KEY AUTOINCREMENT,
-        course       TEXT    NOT NULL,
-        assignment   TEXT    NOT NULL,
-        type         TEXT    NOT NULL,
-        due_date     TEXT    NOT NULL,
-        due_time     TEXT    NOT NULL DEFAULT '00:00:00',
-        completed    INTEGER NOT NULL DEFAULT 0
-    )
+CREATE TABLE IF NOT EXISTS assignments (
+    id          INTEGER PRIMARY KEY AUTOINCREMENT,
+    course      TEXT    NOT NULL,
+    assignment  TEXT    NOT NULL,
+    type        TEXT    NOT NULL,
+    due_date    TEXT    NOT NULL,
+    due_time    TEXT    NOT NULL DEFAULT '23:59:00',
+    completed   INTEGER NOT NULL DEFAULT 0
+)
 """)
-# Create plants table for awarded plants
-table_sql = """
-    CREATE TABLE IF NOT EXISTS plants (
-        id          INTEGER PRIMARY KEY AUTOINCREMENT,
-        name        TEXT    NOT NULL,
-        image_url   TEXT    NOT NULL,
-        awarded_at  TEXT    NOT NULL
-    )
-"""
-c.execute(table_sql)
+
+# Create plants table
+c.execute("""
+CREATE TABLE IF NOT EXISTS plants (
+    id         INTEGER PRIMARY KEY AUTOINCREMENT,
+    name       TEXT    NOT NULL,
+    image_url  TEXT    NOT NULL,
+    awarded_at TEXT    NOT NULL
+)
+""")
+
 conn.commit()
 
-# Hardcoded catalog of real-life plant breeds
-PLANT_CATALOG = [
-    {"name": "Monstera deliciosa", "image": "https://images.unsplash.com/photo-1579370318442-73a6ff72b0a0?auto=format&fit=crop&w=400&q=80"},
-    {"name": "Ficus lyrata (Fiddle Leaf Fig)", "image": "https://images.unsplash.com/photo-1534081333815-ae5019106622?auto=format&fit=crop&w=400&q=80"},
-    {"name": "Epipremnum aureum (Golden Pothos)", "image": "https://images.unsplash.com/photo-1556912167-f556f1f39d6b?auto=format&fit=crop&w=400&q=80"},
-    {"name": "Sansevieria trifasciata (Snake Plant)", "image": "https://images.unsplash.com/photo-1590254074496-c36d4871eaf5?auto=format&fit=crop&w=400&q=80"},
-    {"name": "Dracaena marginata (Dragon Tree)", "image": "https://images.unsplash.com/photo-1600607689867-020a729b3d4d?auto=format&fit=crop&w=400&q=80"},
-    {"name": "Zamioculcas zamiifolia (ZZ Plant)", "image": "https://images.unsplash.com/photo-1592423492834-77e6ec2ffc3e?auto=format&fit=crop&w=400&q=80"},
-    {"name": "Spathiphyllum (Peace Lily)", "image": "https://images.unsplash.com/photo-1602524815465-f2b36bb874f9?auto=format&fit=crop&w=400&q=80"},
-    {"name": "Haworthia attenuata (Zebra Haworthia)", "image": "https://images.unsplash.com/photo-1560844517-08c756ab6b27?auto=format&fit=crop&w=400&q=80"},
-    {"name": "Aloe vera", "image": "https://images.unsplash.com/photo-1542219550-2ab3012dff5e?auto=format&fit=crop&w=400&q=80"},
-    {"name": "Philodendron hederaceum (Heartleaf Philodendron)", "image": "https://images.unsplash.com/photo-1556886564-6a2053850d29?auto=format&fit=crop&w=400&q=80"},
-    {"name": "Boston Fern", "image": "https://images.unsplash.com/photo-1501004318641-b39e6451bec6?auto=format&fit=crop&w=400&q=80"},
-    {"name": "String of Pearls", "image": "https://images.unsplash.com/photo-1542831371-29b0f74f9713?auto=format&fit=crop&w=400&q=80"},
-    {"name": "Rubber Plant", "image": "https://images.unsplash.com/photo-1587285133999-32d66b2655de?auto=format&fit=crop&w=400&q=80"},
-    {"name": "Spider Plant", "image": "https://images.unsplash.com/photo-1493927732325-8a15479f4d49?auto=format&fit=crop&w=400&q=80"},
+# ------------------------------------------------------------------------------
+# ▶ Plant catalog
+# ------------------------------------------------------------------------------
+PLANTS = [
+    {"name": "Monstera deliciosa", "url": "https://images.unsplash.com/photo-1579370318442-73a6ff72b0a0?auto=format&fit=crop&w=400&q=80"},
+    {"name": "Ficus lyrata (Fiddle Leaf Fig)", "url": "https://images.unsplash.com/photo-1534081333815-ae5019106622?auto=format&fit=crop&w=400&q=80"},
+    {"name": "Golden Pothos", "url": "https://images.unsplash.com/photo-1556912167-f556f1f39d6b?auto=format&fit=crop&w=400&q=80"},
+    {"name": "Snake Plant", "url": "https://images.unsplash.com/photo-1590254074496-c36d4871eaf5?auto=format&fit=crop&w=400&q=80"},
+    {"name": "Dragon Tree", "url": "https://images.unsplash.com/photo-1600607689867-020a729b3d4d?auto=format&fit=crop&w=400&q=80"},
+    {"name": "ZZ Plant", "url": "https://images.unsplash.com/photo-1592423492834-77e6ec2ffc3e?auto=format&fit=crop&w=400&q=80"},
+    {"name": "Peace Lily", "url": "https://images.unsplash.com/photo-1602524815465-f2b36bb874f9?auto=format&fit=crop&w=400&q=80"},
+    {"name": "Zebra Haworthia", "url": "https://images.unsplash.com/photo-1560844517-08c756ab6b27?auto=format&fit=crop&w=400&q=80"},
+    {"name": "Aloe vera", "url": "https://images.unsplash.com/photo-1542219550-2ab3012dff5e?auto=format&fit=crop&w=400&q=80"},
+    {"name": "Heartleaf Philodendron", "url": "https://images.unsplash.com/photo-1556886564-6a2053850d29?auto=format&fit=crop&w=400&q=80"},
+    {"name": "Boston Fern", "url": "https://images.unsplash.com/photo-1501004318641-b39e6451bec6?auto=format&fit=crop&w=400&q=80"},
+    {"name": "String of Pearls", "url": "https://images.unsplash.com/photo-1542831371-29b0f74f9713?auto=format&fit=crop&w=400&q=80"},
+    {"name": "Rubber Plant", "url": "https://images.unsplash.com/photo-1587285133999-32d66b2655de?auto=format&fit=crop&w=400&q=80"},
+    {"name": "Spider Plant", "url": "https://images.unsplash.com/photo-1493927732325-8a15479f4d49?auto=format&fit=crop&w=400&q=80"}
 ]
 
-# Function to award a random plant upon completion
+# ------------------------------------------------------------------------------
+# ▶ Award plant on completion
+# ------------------------------------------------------------------------------
 def award_plant():
-    existing = [row[0] for row in c.execute("SELECT name FROM plants").fetchall()]
-    available = [p for p in PLANT_CATALOG if p["name"] not in existing]
-    if not available:
-        st.info("You've collected all available plants! 🌱")
+    owned = [r[0] for r in c.execute("SELECT name FROM plants").fetchall()]
+    choices = [p for p in PLANTS if p['name'] not in owned]
+    if not choices:
+        st.info("All plants collected! 🌱")
         return
-    chosen = random.choice(available)
+    choice = random.choice(choices)
     c.execute(
-        "INSERT INTO plants (name, image_url, awarded_at) VALUES (?, ?, ?)",
-        (chosen["name"], chosen["image"], datetime.now().isoformat())
+        "INSERT INTO plants (name, image_url, awarded_at) VALUES (?, ?, ?)" ,
+        (choice['name'], choice['url'], datetime.now().isoformat())
     )
     conn.commit()
     st.balloons()
-    st.success(f"You earned a new plant: {chosen['name']} 🌿")
+    st.success(f"New plant unlocked: {choice['name']} 🌿")
 
 # ------------------------------------------------------------------------------
-# ▶ Page layout & main tabs
+# ▶ App layout
 # ------------------------------------------------------------------------------
-st.set_page_config(page_title="Assignment Tracker", page_icon="🌿", layout="wide")
+st.set_page_config(page_title="Plant Tracker", page_icon="🌿", layout="wide")
 st.title("🌱 Plant-Based Assignment Tracker 🌱")
 
-tabs = st.tabs(["➕ Add", "⏳ Upcoming", "✅ Completed", "🌿 Garden"])
+tabs = st.tabs(["Add", "Upcoming", "Completed", "Garden"])
 
-# ------------------------------------------------------------------------------
-# ▶ Tab 1: Add Assignment
-# ------------------------------------------------------------------------------
+# --- Add Tab ---
 with tabs[0]:
-    with st.form("add_form", clear_on_submit=True):
-        st.subheader("➕ Add a New Assignment")
-        course     = st.text_input("Course Name")
-        assignment = st.text_input("Assignment Title")
-        a_type     = st.selectbox("Assignment Type", ["Quiz", "Mid-Term", "Final", "Test", "Project", "Paper"], index=0)
-        due_date   = st.date_input("Due Date", value=date.today())
-        due_time   = st.time_input("Due Time", value=dtime(hour=23, minute=59))
-        if st.form_submit_button("Add Assignment"):
-            if course and assignment:
+    with st.form('form'):
+        st.subheader('Add Assignment')
+        course    = st.text_input('Course Name')
+        title     = st.text_input('Assignment Title')
+        a_type    = st.selectbox('Type', ['Quiz','Mid-Term','Final','Test','Project','Paper'])
+        due_date  = st.date_input('Due Date', date.today())
+        due_time  = st.time_input('Due Time', dtime(23,59))
+        if st.form_submit_button('Add'):
+            if course and title:
                 c.execute(
-                    "INSERT INTO assignments (course, assignment, type, due_date, due_time) VALUES (?, ?, ?, ?, ?)",
-                    (course, assignment, a_type, due_date.isoformat(), due_time.isoformat())
+                    "INSERT INTO assignments (course, assignment, type, due_date, due_time) VALUES (?,?,?,?,?)",
+                    (course, title, a_type, due_date.isoformat(), due_time.isoformat())
                 )
                 conn.commit()
-                st.success(f"Added **{assignment}** ({a_type}) for **{course}**, due {due_date} at {due_time}")
+                st.success('Assignment added!')
             else:
-                st.error("Please fill in Course Name and Assignment Title.")
+                st.error('Please enter course and title')
 
-# ------------------------------------------------------------------------------
-# ▶ Helper: load assignments
-# ------------------------------------------------------------------------------
-def load_assignments(flag):
+# Helper to load assignments
+
+def load(flag):
     return c.execute(
-        "SELECT id, course, assignment, type, due_date, due_time FROM assignments WHERE completed = ? ORDER BY due_date, due_time",
+        "SELECT id, course, assignment, type, due_date, due_time FROM assignments WHERE completed=? ORDER BY due_date, due_time",
         (flag,)
     ).fetchall()
 
-# ------------------------------------------------------------------------------
-# ▶ Tab 2: Upcoming Assignments
-# ------------------------------------------------------------------------------
+# --- Upcoming Tab ---
 with tabs[1]:
-    st.subheader("⏳ Upcoming Assignments")
-    upcoming = load_assignments(0)
-    if not upcoming:
-        st.info("No upcoming assignments! 🎉")
+    st.subheader('Upcoming Assignments')
+    rows = load(0)
+    if not rows:
+        st.info('No upcoming assignments')
     else:
-        for id, course, assignment, a_type, due_date, due_time in upcoming:
-            due_dt = datetime.fromisoformat(f"{due_date}T{due_time}")
-            now = datetime.now()
-            delta = due_dt - now
-            weeks   = delta.days // 7
-            days    = delta.days % 7
-            hours   = delta.seconds // 3600
-            minutes = (delta.seconds % 3600) // 60
-
+        for r in rows:
+            id_, course, title, a_type, d_date, d_time = r
+            dt = datetime.fromisoformat(f"{d_date}T{d_time}")
+            diff = dt - datetime.now()
+            weeks = diff.days//7
+            days = diff.days%7
+            hrs  = diff.seconds//3600
+            mins = (diff.seconds%3600)//60
             with st.container():
-                cols = st.columns([2, 4, 2, 2, 1, 1])
-                cols[0].markdown(f"**{course}**")
-                cols[1].markdown(f"**{assignment}** ({a_type})")
-                cols[2].markdown(f"Due: {due_dt.strftime('%Y-%m-%d %H:%M')}")
-                cols[3].metric("Time Remaining", f"{weeks}w {days}d {hours}h {minutes}m")
-                if cols[4].button("✅ Done", key=f"done_{id}"):
-                    c.execute("UPDATE assignments SET completed = 1 WHERE id = ?", (id,))
+                c1, c2, c3, c4, c5 = st.columns([2,4,3,2,1])
+                c1.markdown(f"**{course}**")
+                c2.markdown(f"{title} ({a_type})")
+                c3.markdown(f"Due: {dt.strftime('%Y-%m-%d %H:%M')}")
+                c4.metric('Remaining', f"{weeks}w {days}d {hrs}h {mins}m")
+                if c5.button('✅', key=f'c{ id_ }'):
+                    c.execute("UPDATE assignments SET completed=1 WHERE id=?",(id_,))
                     conn.commit()
                     award_plant()
                     st.experimental_rerun()
-                if cols[5].button("❌", key=f"del_up_{id}"):
-                    c.execute("DELETE FROM assignments WHERE id = ?", (id,))
+                if c5.button('❌', key=f'd{ id_ }'):
+                    c.execute("DELETE FROM assignments WHERE id=?",(id_,))
                     conn.commit()
                     st.experimental_rerun()
             st.divider()
 
-# ------------------------------------------------------------------------------
-# ▶ Tab 3: Completed Assignments
-# ------------------------------------------------------------------------------
+# --- Completed Tab ---
 with tabs[2]:
-    st.subheader("✅ Completed Assignments")
-    completed = load_assignments(1)
-    if not completed:
-        st.info("No assignments marked as completed.")
+    st.subheader('Completed Assignments')
+    rows = load(1)
+    if not rows:
+        st.info('No completed assignments')
     else:
-        for id, course, assignment, a_type, due_date, due_time in completed:
+        for r in rows:
+            id_, course, title, a_type, d_date, d_time = r
             with st.container():
-                cols = st.columns([2, 4, 2, 1])
-                cols[0].markdown(f"~~{course}~~")
-                cols[1].markdown(f"~~{assignment}~~ ({a_type})")
-                cols[2].markdown(f"Due: {due_date} {due_time}")
-                if cols[3].button("🗑️", key=f"del_comp_{id}"):
-                    c.execute("DELETE FROM assignments WHERE id = ?", (id,))
+                c1, c2, c3, c4 = st.columns([2,4,3,1])
+                c1.markdown(f"~~{course}~~")
+                c2.markdown(f"~~{title}~~ ({a_type})")
+                c3.markdown(f"Completed\n{d_date} {d_time}")
+                if c4.button('🗑️', key=f'del{ id_ }'):
+                    c.execute("DELETE FROM assignments WHERE id=?",(id_,))
                     conn.commit()
                     st.experimental_rerun()
             st.divider()
 
-# ------------------------------------------------------------------------------
-# ▶ Tab 4: Garden (Your Plants)
-# ------------------------------------------------------------------------------
+# --- Garden Tab ---
 with tabs[3]:
-    st.subheader("🌿 Your Plant Collection")
+    st.subheader('Your Garden')
     plants = c.execute("SELECT name, image_url FROM plants").fetchall()
     if not plants:
-        st.info("Complete assignments to earn plants!")
+        st.info('Earn plants by completing assignments!')
     else:
         cols = st.columns(3)
-        for idx, (name, img) in enumerate(plants):
-            col = cols[idx % 3]
-            col.image(img, use_column_width=True, caption=name)
+        for i,(name,img) in enumerate(plants):
+            cols[i%3].image(img, caption=name, use_column_width=True)
 
-# ------------------------------------------------------------------------------
-# ▶ Footer
-# ------------------------------------------------------------------------------
-st.markdown("---")
-st.caption("Built with 🌱 by Streamlit")
+# Footer
+st.markdown('---')
+st.caption('Made with love and plants 🌿')
