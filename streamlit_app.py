@@ -24,7 +24,7 @@ st.markdown(
             color: #FFFFFF;
             border: 4px solid #FFFFFF;
             padding: 10px;
-            position: relative;
+            overflow: auto;
         }
         h1 {
             font-size: 80px;
@@ -32,7 +32,7 @@ st.markdown(
             margin-bottom: 20px;
         }
         .stats {
-            position: absolute;
+            position: fixed;
             top: 20px;
             right: 30px;
             color: #FFFFFF;
@@ -112,8 +112,7 @@ ROLL_COST = 5
 # ------------------------------------------------------------------------------
 def get_balance():
     earned = sum(POINTS_MAP.get(r[0],0) for r in c.execute("SELECT type FROM assignments WHERE completed=1"))
-    spent = sum(r[0] for r in c.execute("SELECT cost FROM plants"))
-    return earned - spent, earned, spent
+    return earned
 
 def load_assignments(flag):
     return c.execute(
@@ -133,7 +132,7 @@ EMOJIS = ["🌱","🌿","🍃","🌴","🌵","🌼","🍀","🍎","🍏",
 EMOJI_MAP = {breed: EMOJIS[i % len(EMOJIS)] for i, breed in enumerate(PLANT_BREEDS)}
 
 # ------------------------------------------------------------------------------
-# ▶ Award plants free
+# ▶ Award free plants
 # ------------------------------------------------------------------------------
 def award_plant():
     total = c.execute("SELECT COUNT(*) FROM assignments WHERE completed=1").fetchone()[0]
@@ -146,17 +145,16 @@ def award_plant():
         c.execute("INSERT INTO plants(name,awarded_at,rarity,cost) VALUES(?,?,?,?)",
                   (choice,datetime.now().isoformat(),rarity,cost))
         conn.commit(); owned.append(choice)
-        st.balloons(); st.success(f"Unlocked: {EMOJI_MAP[choice]} {choice} ({rarity}, Cost {cost}pts)")
+        st.balloons(); st.success(f"Unlocked: {EMOJI_MAP[choice]} {choice} ({rarity})")
 
 # ------------------------------------------------------------------------------
 # ▶ Roll for plant
 # ------------------------------------------------------------------------------
 def roll_plant():
-    bal,_,_ = get_balance()
+    bal = get_balance()
     if bal < ROLL_COST:
         st.error(f"Not enough points (need {ROLL_COST}, have {bal})")
         return
-    # Deduct cost record
     c.execute("INSERT INTO plants(name,awarded_at,rarity,cost) VALUES(?,?,?,?)",
               ("Roll Cost",datetime.now().isoformat(),"",ROLL_COST))
     conn.commit()
@@ -183,8 +181,8 @@ def roll_plant():
 # ------------------------------------------------------------------------------
 # ▶ UI Header & Points
 # ------------------------------------------------------------------------------
-balance, earned, spent = get_balance()
-st.markdown(f"<div class='stats'>Earned: {earned}, Spent: {spent}</div>", unsafe_allow_html=True)
+bal = get_balance()
+st.markdown(f"<div class='stats'>Points: {bal}</div>", unsafe_allow_html=True)
 st.markdown('<h1>🌱 Plant-Based Assignment Tracker 🌱</h1>', unsafe_allow_html=True)
 
 # ------------------------------------------------------------------------------
@@ -249,9 +247,10 @@ with tabs[2]:
 with tabs[3]:
     st.subheader("🌿 Plant Catalog")
     # centered roll button
-    c1, c2, c3 = st.columns([1,2,1])
-    if c2.button(f"🎲 Roll for a Plant ({ROLL_COST} pts)"):
-        roll_plant()
+    col1, col2, col3 = st.columns([2,1,2])
+    with col2:
+        if st.button(f"🎲 Roll for a Plant ({ROLL_COST} pts)"):
+            roll_plant()
     st.markdown("---")
     # orderly grid (4 columns)
     grid = st.columns(4)
