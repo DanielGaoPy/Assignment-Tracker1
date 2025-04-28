@@ -15,34 +15,36 @@ st.set_page_config(
 # ------------------------------------------------------------------------------
 # ▶ Custom CSS for plant-based theme
 # ------------------------------------------------------------------------------
-st.markdown("""
-<style>
-    /* Dark green background */
-    .stApp {
-        background-color: #2E8B57;
-        color: #FFFFFF;
-    }
-    /* Centered, larger title */
-    .custom-title {
-        text-align: center;
-        font-size: 48px;
-        margin-bottom: 20px;
-        color: #FFFFFF;
-    }
-    /* Button styling */
-    .stButton>button {
-        background-color: #A8D5BA;
-        color: #1B4332;
-        border-radius: 10px;
-        padding: 8px 16px;
-        font-weight: bold;
-    }
-    /* Tab labels */
-    .css-1dq8tca {
-        color: #FFFFFF !important;
-    }
-</style>
-""", unsafe_allow_html=True)
+st.markdown(
+    """
+    <style>
+        /* Full app background */
+        [data-testid="stAppViewContainer"] {
+            background-color: #2E8B57 !important;
+        }
+        /* Title styling */
+        h1 {
+            color: #FFFFFF;
+            font-size: 64px;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        /* Button styling */
+        button {
+            background-color: #A8D5BA !important;
+            color: #1B4332 !important;
+            border-radius: 10px !important;
+            padding: 8px 16px !important;
+            font-weight: bold;
+        }
+        /* Tab label styling */
+        [role="tab"] {
+            color: #FFFFFF !important;
+        }
+    </style>
+    """,
+    unsafe_allow_html=True
+)
 
 # ------------------------------------------------------------------------------
 # ▶ Database setup & migration
@@ -133,11 +135,13 @@ def load_assignments(flag):
 # ------------------------------------------------------------------------------
 # ▶ App header & tabs
 # ------------------------------------------------------------------------------
-st.markdown('<div class="custom-title">🌱 Plant-Based Assignment Tracker 🌱</div>', unsafe_allow_html=True)
+st.markdown('<h1>🌱 Plant-Based Assignment Tracker 🌱</h1>', unsafe_allow_html=True)
+
+# Tabs including catalog and collected
 
 tabs = st.tabs(["Add", "Upcoming", "Completed", "Plant Catalog", "Collected Plants"])
 
-# --- Add Tab ---
+# Add Tab
 with tabs[0]:
     with st.form('add_form', clear_on_submit=True):
         st.subheader('Add Assignment')
@@ -157,7 +161,7 @@ with tabs[0]:
             else:
                 st.error('Please enter both course and title.')
 
-# --- Upcoming Tab ---
+# Upcoming Tab
 with tabs[1]:
     st.subheader('Upcoming Assignments')
     rows = load_assignments(0)
@@ -188,7 +192,7 @@ with tabs[1]:
                     st.experimental_rerun()
             st.divider()
 
-# --- Completed Tab ---
+# Completed Tab
 with tabs[2]:
     st.subheader('Completed Assignments')
     rows = load_assignments(1)
@@ -207,14 +211,14 @@ with tabs[2]:
                     st.experimental_rerun()
             st.divider()
 
-# --- Plant Catalog Tab ---
+# Plant Catalog Tab
 with tabs[3]:
     st.subheader('Plant Catalog')
     cols = st.columns(3)
     for i, plant in enumerate(PLANTS):
         cols[i % 3].image(plant['url'], caption=plant['name'], use_column_width=True)
 
-# --- Collected Plants Tab ---
+# Collected Plants Tab
 with tabs[4]:
     st.subheader('Collected Plants')
     collected = c.execute("SELECT name, image_url FROM plants").fetchall()
