@@ -14,7 +14,7 @@ st.set_page_config(
 )
 
 # ------------------------------------------------------------------------------
-# ▶ Custom CSS: forest green background, white accents, app border, stats
+# ▶ Custom CSS: theme, cards, stats positions
 # ------------------------------------------------------------------------------
 st.markdown(
     """
@@ -25,16 +25,25 @@ st.markdown(
             border: 4px solid #FFFFFF;
             padding: 10px;
             overflow: auto;
+            position: relative;
         }
         h1 {
             font-size: 80px;
             text-align: center;
             margin-bottom: 20px;
         }
-        .stats {
+        .stats-right {
             position: fixed;
             top: 20px;
             right: 30px;
+            color: #FFFFFF;
+            font-size: 24px;
+            font-weight: bold;
+        }
+        .stats-left {
+            position: fixed;
+            top: 20px;
+            left: 30px;
             color: #FFFFFF;
             font-size: 24px;
             font-weight: bold;
@@ -49,7 +58,6 @@ st.markdown(
             margin: 5px;
         }
         .card {
-            background-color: #FFFFFF;
             color: #1B4332;
             border: 2px solid #FFFFFF;
             border-radius: 12px;
@@ -99,20 +107,20 @@ CREATE TABLE IF NOT EXISTS plants (
 conn.commit()
 
 # ------------------------------------------------------------------------------
-# ▶ Points and rarity config
+# ▶ Points & rarity config
 # ------------------------------------------------------------------------------
 POINTS_MAP = {"Homework":1,"Quiz":2,"Paper":3,"Project":4,"Test":4,"Mid-Term":5,"Final":10}
 RARITY_CATS = ["Common","Rare","Epic","Legendary"]
 RARITY_COSTS = {"Common":1,"Rare":3,"Epic":5,"Legendary":10}
 RARITY_WEIGHTS = [0.5,0.3,0.15,0.05]
 ROLL_COST = 5
+COLORS = {"Common":"#FFFFFF","Rare":"#ADD8E6","Epic":"#D8BFD8","Legendary":"#FFFFE0"}
 
 # ------------------------------------------------------------------------------
 # ▶ Helpers
 # ------------------------------------------------------------------------------
 def get_balance():
-    earned = sum(POINTS_MAP.get(r[0],0) for r in c.execute("SELECT type FROM assignments WHERE completed=1"))
-    return earned
+    return sum(POINTS_MAP.get(r[0],0) for r in c.execute("SELECT type FROM assignments WHERE completed=1"))
 
 def load_assignments(flag):
     return c.execute(
@@ -123,12 +131,16 @@ def load_assignments(flag):
 # ------------------------------------------------------------------------------
 # ▶ Plant catalog data
 # ------------------------------------------------------------------------------
-PLANT_BREEDS = ["Monstera deliciosa","Ficus lyrata","Golden Pothos","Snake Plant",
-                 "Dragon Tree","ZZ Plant","Peace Lily","Red Apple","Green Apple",
-                 "Rose","Tulip","Sunflower","Daisy","Cherry Blossom","Banana",
-                 "Grapes","Strawberry","Cactus","Four Leaf Clover","Herb","Maple Leaf"]
-EMOJIS = ["🌱","🌿","🍃","🌴","🌵","🌼","🍀","🍎","🍏",
-          "🌹","🌷","🌻","🌸","🌻","🍌","🍇","🍓","🌵","🍀","🍁"]
+PLANT_BREEDS = [
+    "Monstera deliciosa","Ficus lyrata","Golden Pothos","Snake Plant",
+    "Dragon Tree","ZZ Plant","Peace Lily","Red Apple","Green Apple",
+    "Rose","Tulip","Sunflower","Daisy","Cherry Blossom","Banana",
+    "Grapes","Strawberry","Cactus","Four Leaf Clover","Herb","Maple Leaf"
+]
+EMOJIS = [
+    "🌱","🌿","🍃","🌴","🌵","🌼","🍀","🍎","🍏",
+    "🌹","🌷","🌻","🌸","🌻","🍌","🍇","🍓","🌵","🍀","🍁"
+]
 EMOJI_MAP = {breed: EMOJIS[i % len(EMOJIS)] for i, breed in enumerate(PLANT_BREEDS)}
 
 # ------------------------------------------------------------------------------
@@ -141,9 +153,8 @@ def award_plant():
     while len(owned) < due:
         choice = random.choice([b for b in PLANT_BREEDS if b not in owned])
         rarity = random.choices(RARITY_CATS, weights=RARITY_WEIGHTS, k=1)[0]
-        cost = RARITY_COSTS[rarity]
         c.execute("INSERT INTO plants(name,awarded_at,rarity,cost) VALUES(?,?,?,?)",
-                  (choice,datetime.now().isoformat(),rarity,cost))
+                  (choice,datetime.now().isoformat(),rarity,0))
         conn.commit(); owned.append(choice)
         st.balloons(); st.success(f"Unlocked: {EMOJI_MAP[choice]} {choice} ({rarity})")
 
@@ -168,21 +179,21 @@ def roll_plant():
     if pick in existing:
         c.execute("INSERT INTO plants(name,awarded_at,rarity,cost) VALUES(?,?,?,?)",
                   (pick,datetime.now().isoformat(),"Duplicate",-1))
-        conn.commit()
-        ph.markdown(f"🎲 Duplicate! Refunded 1 point. {EMOJI_MAP[pick]} {pick}")
+        conn.commit(); ph.markdown(f"🎲 Duplicate! Refunded 1 point. {EMOJI_MAP[pick]} {pick}")
     else:
         rarity = random.choices(RARITY_CATS, weights=RARITY_WEIGHTS, k=1)[0]
         c.execute("INSERT INTO plants(name,awarded_at,rarity,cost) VALUES(?,?,?,?)",
                   (pick,datetime.now().isoformat(),rarity,0))
-        conn.commit()
-        ph.markdown(f"🎲 You got: {EMOJI_MAP[pick]} {pick} ({rarity})")
+        conn.commit(); ph.markdown(f"🎲 You got: {EMOJI_MAP[pick]} {pick} ({rarity})")
     st.balloons()
 
 # ------------------------------------------------------------------------------
 # ▶ UI Header & Points
 # ------------------------------------------------------------------------------
 bal = get_balance()
-st.markdown(f"<div class='stats'>Points: {bal}</div>", unsafe_allow_html=True)
+st.markdown(f"<div class='stats-left'>Points: {bal}</div>", unsafe_allow_html=True)
+st.markdown('<div class="stats-right"></div>', unsafe_allow_html=True)
+# right stats removed per request
 st.markdown('<h1>🌱 Plant-Based Assignment Tracker 🌱</h1>', unsafe_allow_html=True)
 
 # ------------------------------------------------------------------------------
@@ -246,19 +257,19 @@ with tabs[2]:
 # Plant Catalog tab
 with tabs[3]:
     st.subheader("🌿 Plant Catalog")
-    # centered roll button
     col1, col2, col3 = st.columns([2,1,2])
     with col2:
         if st.button(f"🎲 Roll for a Plant ({ROLL_COST} pts)"):
             roll_plant()
     st.markdown("---")
-    # orderly grid (4 columns)
     grid = st.columns(4)
-    for i,breed in enumerate(PLANT_BREEDS):
+    for i, breed in enumerate(PLANT_BREEDS):
         col = grid[i % 4]
         with col:
             st.markdown(
-                f"<div class='card'><div style='font-size:48px'>{EMOJI_MAP[breed]}</div>"
+                f"<div class='card' style='background-color:{COLORS['Common']}'>"
+                f"<p style='font-size:12px;color:#1B4332'>{'Common'}</p>"
+                f"<div style='font-size:48px'>{EMOJI_MAP[breed]}</div>"
                 f"<h4 style='color:#1B4332'>{breed}</h4></div>",
                 unsafe_allow_html=True
             )
@@ -270,7 +281,14 @@ with tabs[4]:
     if not data:
         st.info("Complete assignments to earn plants!")
     for name, rarity, cost in data:
-        st.markdown(f"### {EMOJI_MAP.get(name,'🌱')} {name} — {rarity} (Cost {cost} pts)")
+        color = COLORS.get(rarity, COLORS['Common'])
+        st.markdown(
+            f"<div class='card' style='background-color:{color}'>"
+            f"<p style='font-size:12px;color:#1B4332'>{rarity}</p>"
+            f"<div style='font-size:48px'>{EMOJI_MAP.get(name,'🌱')}</div>"
+            f"<h4 style='color:#1B4332'>{name}</h4></div>",
+            unsafe_allow_html=True
+        )
 
 # Footer
 st.markdown("---")
