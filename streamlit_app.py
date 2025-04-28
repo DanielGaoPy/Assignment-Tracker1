@@ -24,7 +24,6 @@ st.markdown(
             color: #FFFFFF;
             border: 4px solid #FFFFFF;
             padding: 10px;
-            overflow: auto;
         }
         h1 {
             font-size: 80px;
@@ -47,10 +46,13 @@ st.markdown(
             text-align: center;
             margin-bottom: 16px;
         }
-        .roll-btn {
+        .roll-btn-container {
             display: flex;
             justify-content: center;
             margin-bottom: 20px;
+        }
+        hr {
+            border-top: 2px solid #FFFFFF;
         }
     </style>
     """,
@@ -80,7 +82,6 @@ CREATE TABLE IF NOT EXISTS assignments (
     completed INTEGER NOT NULL DEFAULT 0
 )
 """)
-
 c.execute("""
 CREATE TABLE IF NOT EXISTS plants (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -93,7 +94,7 @@ CREATE TABLE IF NOT EXISTS plants (
 conn.commit()
 
 # ----------------------------------------------------------------------------
-# ▶ Config
+# ▶ Configuration
 # ----------------------------------------------------------------------------
 POINTS_MAP = {"Homework":1, "Quiz":2, "Paper":3, "Project":4, "Test":4, "Mid-Term":5, "Final":10}
 RARITY_CATS = ["Common","Rare","Epic","Legendary"]
@@ -105,21 +106,20 @@ COLORS = {"Common":"#FFFFFF","Rare":"#ADD8E6","Epic":"#D8BFD8","Legendary":"#FFF
 # ▶ Helper functions
 # ----------------------------------------------------------------------------
 def get_balance():
-    earned = sum(POINTS_MAP.get(r[0],0) for r in c.execute("SELECT type FROM assignments WHERE completed=1"))
-    return earned
+    return sum(POINTS_MAP.get(r[0], 0) for r in c.execute("SELECT type FROM assignments WHERE completed=1"))
 
 def load_assignments(flag):
     return c.execute(
-        "SELECT id,course,assignment,type,due_date,due_time FROM assignments WHERE completed=? ORDER BY due_date,due_time",
+        "SELECT id, course, assignment, type, due_date, due_time FROM assignments WHERE completed=? ORDER BY due_date, due_time",
         (flag,)
     ).fetchall()
 
 # Fixed catalog data
 PLANTS = [
-    "Monstera deliciosa","Ficus lyrata","Golden Pothos","Snake Plant",
-    "Dragon Tree","ZZ Plant","Peace Lily","Red Apple","Green Apple",
-    "Rose","Tulip","Sunflower","Daisy","Cherry Blossom","Banana",
-    "Grapes","Strawberry","Cactus","Four Leaf Clover","Herb","Maple Leaf"
+    "Monstera deliciosa", "Ficus lyrata", "Golden Pothos", "Snake Plant",
+    "Dragon Tree", "ZZ Plant", "Peace Lily", "Red Apple", "Green Apple",
+    "Rose", "Tulip", "Sunflower", "Daisy", "Cherry Blossom", "Banana",
+    "Grapes", "Strawberry", "Cactus", "Four Leaf Clover", "Herb", "Maple Leaf"
 ]
 EMOJIS = [
     "🌱","🌿","🍃","🌴","🌵","🌼","🍀","🍎","🍏",
@@ -128,7 +128,9 @@ EMOJIS = [
 EMOJI_MAP = {PLANTS[i]: EMOJIS[i % len(EMOJIS)] for i in range(len(PLANTS))}
 CATALOG_RARITY = {p: random.choices(RARITY_CATS, weights=RARITY_WEIGHTS, k=1)[0] for p in PLANTS}
 
-# Award free plants every 5 completions
+# ----------------------------------------------------------------------------
+# ▶ Award free plants (every 5 completions)
+# ----------------------------------------------------------------------------
 def award_plant():
     total = c.execute("SELECT COUNT(*) FROM assignments WHERE completed=1").fetchone()[0]
     due = total // 5
@@ -137,7 +139,7 @@ def award_plant():
         choice = random.choice([p for p in PLANTS if p not in owned])
         rarity = random.choices(RARITY_CATS, weights=RARITY_WEIGHTS, k=1)[0]
         c.execute(
-            "INSERT INTO plants(name,awarded_at,rarity,cost) VALUES(?,?,?,?)",
+            "INSERT INTO plants(name, awarded_at, rarity, cost) VALUES (?, ?, ?, ?)",
             (choice, datetime.now().isoformat(), rarity, 0)
         )
         conn.commit()
@@ -145,7 +147,9 @@ def award_plant():
         st.balloons()
         st.success(f"Unlocked: {EMOJI_MAP[choice]} {choice} ({rarity})")
 
-# Roll for a random plant
+# ----------------------------------------------------------------------------
+# ▶ Roll for a random plant
+# ----------------------------------------------------------------------------
 def roll_plant():
     bal = get_balance()
     if bal < ROLL_COST:
@@ -153,14 +157,14 @@ def roll_plant():
         return
     # Deduct cost
     c.execute(
-        "INSERT INTO plants(name,awarded_at,rarity,cost) VALUES(?,?,?,?)",
+        "INSERT INTO plants(name, awarded_at, rarity, cost) VALUES (?, ?, ?, ?)",
         ("RollCost", datetime.now().isoformat(), "", ROLL_COST)
     )
     conn.commit()
-    ph = st.empty()
+    placeholder = st.empty()
     for _ in range(20):
         temp = random.choice(PLANTS)
-        ph.markdown(f"### Rolling: {EMOJI_MAP[temp]} {temp}")
+        placeholder.markdown(f"### Rolling: {EMOJI_MAP[temp]} {temp}")
         time.sleep(0.05)
     pick = random.choices(
         PLANTS,
@@ -170,19 +174,19 @@ def roll_plant():
     existing = [r[0] for r in c.execute("SELECT name FROM plants")]
     if pick in existing:
         c.execute(
-            "INSERT INTO plants(name,awarded_at,rarity,cost) VALUES(?,?,?,?)",
+            "INSERT INTO plants(name, awarded_at, rarity, cost) VALUES (?, ?, ?, ?)",
             (pick, datetime.now().isoformat(), "Duplicate", -1)
         )
         conn.commit()
-        ph.markdown(f"🎲 Duplicate! Refunded 1 point. {EMOJI_MAP[pick]} {pick}")
+        placeholder.markdown(f"🎲 Duplicate! Refunded 1 point. {EMOJI_MAP[pick]} {pick}")
     else:
         rarity = random.choices(RARITY_CATS, weights=RARITY_WEIGHTS, k=1)[0]
         c.execute(
-            "INSERT INTO plants(name,awarded_at,rarity,cost) VALUES(?,?,?,?)",
+            "INSERT INTO plants(name, awarded_at, rarity, cost) VALUES (?, ?, ?, ?)",
             (pick, datetime.now().isoformat(), rarity, 0)
         )
         conn.commit()
-        ph.markdown(f"🎲 You got: {EMOJI_MAP[pick]} {pick} ({rarity})")
+        placeholder.markdown(f"🎲 You got: {EMOJI_MAP[pick]} {pick} ({rarity})")
     st.balloons()
 
 # ----------------------------------------------------------------------------
@@ -192,10 +196,10 @@ st.markdown(f"<div class='stats-left'>Points: {get_balance()}</div>", unsafe_all
 st.markdown('<h1>🌱 Plant-Based Assignment Tracker 🌱</h1>', unsafe_allow_html=True)
 
 tab_add, tab_upc, tab_cmp, tab_cat, tab_col = st.tabs([
-    "Add","Upcoming","Completed","Plant Catalog","Collected Plants"
+    "Add", "Upcoming", "Completed", "Plant Catalog", "Collected Plants"
 ])
 
-# Add Tab
+# --- Add Tab ---
 with tab_add:
     st.subheader("➕ Add Assignment")
     with st.form("form_add", clear_on_submit=True):
@@ -207,7 +211,7 @@ with tab_add:
         if st.form_submit_button("Add"):
             if course and assign:
                 c.execute(
-                    "INSERT INTO assignments(course,assignment,type,due_date,due_time) VALUES(?,?,?,?,?)",
+                    "INSERT INTO assignments(course, assignment, type, due_date, due_time) VALUES (?, ?, ?, ?, ?)",
                     (course, assign, a_type, due_d.isoformat(), due_t.isoformat())
                 )
                 conn.commit()
@@ -215,7 +219,7 @@ with tab_add:
             else:
                 st.error("Please provide both course and assignment title.")
 
-# Upcoming Tab
+# --- Upcoming Tab ---
 with tab_upc:
     st.subheader("⏳ Upcoming Assignments")
     rows = load_assignments(0)
@@ -226,7 +230,7 @@ with tab_upc:
         st.markdown(f"**{course} - {assign} ({a_type})**  ")
         st.markdown(f"Due: {dt:%Y-%m-%d %H:%M}")
 
-# Completed Tab
+# --- Completed Tab ---
 with tab_cmp:
     st.subheader("✅ Completed Assignments")
     rows = load_assignments(1)
@@ -235,12 +239,15 @@ with tab_cmp:
     for id_, course, assign, a_type, d_date, d_time in rows:
         st.markdown(f"~~{course} - {assign}~~ ({a_type})")
 
-# Plant Catalog Tab
+# --- Plant Catalog Tab ---
 with tab_cat:
     st.subheader("🌿 Plant Catalog")
-    st.markdown("<div class='roll-btn'><button>🎲 Roll for a Plant (5 pts)</button></div>", unsafe_allow_html=True)
-    if st.button("", key="roll_trigger"):
+    # Centered roll button
+    st.markdown('<div class="roll-btn-container">', unsafe_allow_html=True)
+    if st.button(f"🎲 Roll for a Plant ({ROLL_COST} pts)"):
         roll_plant()
+    st.markdown('</div>', unsafe_allow_html=True)
+    st.markdown('---')
     cols = st.columns(4)
     for i, plant in enumerate(PLANTS):
         rarity = CATALOG_RARITY[plant]
@@ -255,10 +262,10 @@ with tab_cat:
                 unsafe_allow_html=True
             )
 
-# Collected Plants Tab
+# --- Collected Plants Tab ---
 with tab_col:
     st.subheader("🌳 Collected Plants")
-    data = c.execute("SELECT name,rarity,cost FROM plants").fetchall()
+    data = c.execute("SELECT name, rarity, cost FROM plants").fetchall()
     if not data:
         st.info("No collected plants yet.")
     for name, rarity, cost in data:
