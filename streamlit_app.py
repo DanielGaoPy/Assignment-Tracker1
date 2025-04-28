@@ -51,6 +51,15 @@ st.markdown(
             justify-content: center;
             margin-bottom: 20px;
         }
+        button {
+            background-color: #FFFFFF !important;
+            color: #228B22 !important;
+            border: 2px solid #FFFFFF !important;
+            border-radius: 8px !important;
+            padding: 8px 16px !important;
+            font-weight: bold;
+            margin: 5px;
+        }
         hr {
             border-top: 2px solid #FFFFFF;
         }
@@ -100,7 +109,12 @@ POINTS_MAP = {"Homework":1, "Quiz":2, "Paper":3, "Project":4, "Test":4, "Mid-Ter
 RARITY_CATS = ["Common","Rare","Epic","Legendary"]
 RARITY_WEIGHTS = [0.5,0.3,0.15,0.05]
 ROLL_COST = 5
-COLORS = {"Common":"#FFFFFF","Rare":"#ADD8E6","Epic":"#D8BFD8","Legendary":"#FFFFE0"}
+COLORS = {  # more vivid colors
+    "Common": "#e6ffe6",       # light green
+    "Rare": "#4da6ff",        # vivid blue
+    "Epic": "#b84dff",        # vivid purple
+    "Legendary": "#ffd11a"    # gold
+}
 
 # ----------------------------------------------------------------------------
 # ▶ Helper functions
@@ -229,6 +243,17 @@ with tab_upc:
         dt = datetime.fromisoformat(f"{d_date}T{d_time}")
         st.markdown(f"**{course} - {assign} ({a_type})**  ")
         st.markdown(f"Due: {dt:%Y-%m-%d %H:%M}")
+        c1, c2 = st.columns([5,1])
+        if c1.button("✅ Done", key=f"done_{id_}"):
+            c.execute("UPDATE assignments SET completed=1 WHERE id=?", (id_,))
+            conn.commit()
+            award_plant()
+            st.experimental_rerun()
+        if c2.button("❌ Delete", key=f"del_{id_}"):
+            c.execute("DELETE FROM assignments WHERE id=?", (id_,))
+            conn.commit()
+            st.experimental_rerun()
+        st.markdown("---")
 
 # --- Completed Tab ---
 with tab_cmp:
@@ -238,11 +263,14 @@ with tab_cmp:
         st.info("No completed assignments.")
     for id_, course, assign, a_type, d_date, d_time in rows:
         st.markdown(f"~~{course} - {assign}~~ ({a_type})")
+        if st.button("🗑️ Remove", key=f"rem_{id_}"):
+            c.execute("DELETE FROM assignments WHERE id=?", (id_,))
+            conn.commit()
+            st.experimental_rerun()
 
 # --- Plant Catalog Tab ---
 with tab_cat:
     st.subheader("🌿 Plant Catalog")
-    # Centered roll button
     st.markdown('<div class="roll-btn-container">', unsafe_allow_html=True)
     if st.button(f"🎲 Roll for a Plant ({ROLL_COST} pts)"):
         roll_plant()
@@ -257,7 +285,7 @@ with tab_cat:
                 f"<div class='card' style='background-color:{color}'>"
                 f"<p style='font-size:12px;color:#1B4332'>{rarity}</p>"
                 f"<div style='font-size:48px'>{EMOJI_MAP[plant]}</div>"
-                f"<p>{plant}</p>"
+                f"<h4 style='color:#1B4332'>{plant}</h4>"
                 f"</div>",
                 unsafe_allow_html=True
             )
@@ -274,7 +302,7 @@ with tab_col:
             f"<div class='card' style='background-color:{color}'>"
             f"<p style='font-size:12px;color:#1B4332'>{rarity}</p>"
             f"<div style='font-size:48px'>{EMOJI_MAP.get(name,'🌱')}</div>"
-            f"<p>{name}</p>"
+            f"<h4 style='color:#1B4332'>{name}</h4>"
             f"</div>",
             unsafe_allow_html=True
         )
