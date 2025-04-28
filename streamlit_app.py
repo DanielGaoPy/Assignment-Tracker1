@@ -4,27 +4,39 @@ import random
 from datetime import date, datetime, time as dtime
 
 # ------------------------------------------------------------------------------
+# ▶ Page configuration (must be first Streamlit command)
+# ------------------------------------------------------------------------------
+st.set_page_config(
+    page_title="Plant-Based Assignment Tracker",
+    page_icon="🌿",
+    layout="wide"
+)
+
+# ------------------------------------------------------------------------------
 # ▶ Custom CSS for plant-based theme
 # ------------------------------------------------------------------------------
-st.markdown("""
-<style>
-  .stApp {
-    background-color: #F0FBF3;
-  }
-  .css-1emrehy button {
-    background-color: #A8D5BA !important;
-    color: #1B4332 !important;
-    border-radius: 10px;
-    padding: 5px 10px;
-  }
-  .stMetric {
-    background-color: #D8F3DC;
-    border-radius: 10px;
-    padding: 5px 10px;
-    color: #1B4332;
-  }
-</style>
-""", unsafe_allow_html=True)
+st.markdown(
+    """
+    <style>
+      .stApp {
+        background-color: #F0FBF3;
+      }
+      button.css-1emrehy {
+        background-color: #A8D5BA !important;
+        color: #1B4332 !important;
+        border-radius: 10px;
+        padding: 5px 10px;
+      }
+      .stMetric {
+        background-color: #D8F3DC;
+        border-radius: 10px;
+        padding: 5px 10px;
+        color: #1B4332;
+      }
+    </style>
+    """,
+    unsafe_allow_html=True
+)
 
 # ------------------------------------------------------------------------------
 # ▶ Database setup & migration (runs once)
@@ -32,7 +44,7 @@ st.markdown("""
 conn = sqlite3.connect('assignments.db', check_same_thread=False)
 c = conn.cursor()
 
-# Migration: Add missing columns
+# Ensure columns exist
 for col, props in [
     ('type', "TEXT NOT NULL DEFAULT 'Assignment'"),
     ('due_time', "TEXT NOT NULL DEFAULT '23:59:00'"),
@@ -43,29 +55,31 @@ for col, props in [
     except sqlite3.OperationalError:
         pass
 
-# Create table if not exist
-c.execute("""
-CREATE TABLE IF NOT EXISTS assignments (
-    id          INTEGER PRIMARY KEY AUTOINCREMENT,
-    course      TEXT    NOT NULL,
-    assignment  TEXT    NOT NULL,
-    type        TEXT    NOT NULL,
-    due_date    TEXT    NOT NULL,
-    due_time    TEXT    NOT NULL DEFAULT '23:59:00',
-    completed   INTEGER NOT NULL DEFAULT 0
+# Create assignments table
+c.execute(
+    """
+    CREATE TABLE IF NOT EXISTS assignments (
+        id          INTEGER PRIMARY KEY AUTOINCREMENT,
+        course      TEXT    NOT NULL,
+        assignment  TEXT    NOT NULL,
+        type        TEXT    NOT NULL,
+        due_date    TEXT    NOT NULL,
+        due_time    TEXT    NOT NULL DEFAULT '23:59:00',
+        completed   INTEGER NOT NULL DEFAULT 0
+    )
+    """
 )
-""")
-
 # Create plants table
-c.execute("""
-CREATE TABLE IF NOT EXISTS plants (
-    id         INTEGER PRIMARY KEY AUTOINCREMENT,
-    name       TEXT    NOT NULL,
-    image_url  TEXT    NOT NULL,
-    awarded_at TEXT    NOT NULL
+c.execute(
+    """
+    CREATE TABLE IF NOT EXISTS plants (
+        id         INTEGER PRIMARY KEY AUTOINCREMENT,
+        name       TEXT    NOT NULL,
+        image_url  TEXT    NOT NULL,
+        awarded_at TEXT    NOT NULL
+    )
+    """
 )
-""")
-
 conn.commit()
 
 # ------------------------------------------------------------------------------
@@ -99,7 +113,7 @@ def award_plant():
         return
     choice = random.choice(choices)
     c.execute(
-        "INSERT INTO plants (name, image_url, awarded_at) VALUES (?, ?, ?)" ,
+        "INSERT INTO plants (name, image_url, awarded_at) VALUES (?, ?, ?)",
         (choice['name'], choice['url'], datetime.now().isoformat())
     )
     conn.commit()
@@ -109,7 +123,6 @@ def award_plant():
 # ------------------------------------------------------------------------------
 # ▶ App layout
 # ------------------------------------------------------------------------------
-st.set_page_config(page_title="Plant Tracker", page_icon="🌿", layout="wide")
 st.title("🌱 Plant-Based Assignment Tracker 🌱")
 
 tabs = st.tabs(["Add", "Upcoming", "Completed", "Garden"])
@@ -149,27 +162,26 @@ with tabs[1]:
     if not rows:
         st.info('No upcoming assignments')
     else:
-        for r in rows:
-            id_, course, title, a_type, d_date, d_time = r
+        for id_, course, title, a_type, d_date, d_time in rows:
             dt = datetime.fromisoformat(f"{d_date}T{d_time}")
             diff = dt - datetime.now()
-            weeks = diff.days//7
-            days = diff.days%7
-            hrs  = diff.seconds//3600
-            mins = (diff.seconds%3600)//60
+            weeks = diff.days // 7
+            days  = diff.days % 7
+            hrs   = diff.seconds // 3600
+            mins  = (diff.seconds % 3600) // 60
             with st.container():
                 c1, c2, c3, c4, c5 = st.columns([2,4,3,2,1])
                 c1.markdown(f"**{course}**")
                 c2.markdown(f"{title} ({a_type})")
                 c3.markdown(f"Due: {dt.strftime('%Y-%m-%d %H:%M')}")
                 c4.metric('Remaining', f"{weeks}w {days}d {hrs}h {mins}m")
-                if c5.button('✅', key=f'c{ id_ }'):
-                    c.execute("UPDATE assignments SET completed=1 WHERE id=?",(id_,))
+                if c5.button('✅', key=f'c{id_}'):
+                    c.execute("UPDATE assignments SET completed=1 WHERE id=?", (id_,))
                     conn.commit()
                     award_plant()
                     st.experimental_rerun()
-                if c5.button('❌', key=f'd{ id_ }'):
-                    c.execute("DELETE FROM assignments WHERE id=?",(id_,))
+                if c5.button('❌', key=f'd{id_}'):
+                    c.execute("DELETE FROM assignments WHERE id=?", (id_,))
                     conn.commit()
                     st.experimental_rerun()
             st.divider()
@@ -181,15 +193,14 @@ with tabs[2]:
     if not rows:
         st.info('No completed assignments')
     else:
-        for r in rows:
-            id_, course, title, a_type, d_date, d_time = r
+        for id_, course, title, a_type, d_date, d_time in rows:
             with st.container():
                 c1, c2, c3, c4 = st.columns([2,4,3,1])
                 c1.markdown(f"~~{course}~~")
                 c2.markdown(f"~~{title}~~ ({a_type})")
                 c3.markdown(f"Completed\n{d_date} {d_time}")
-                if c4.button('🗑️', key=f'del{ id_ }'):
-                    c.execute("DELETE FROM assignments WHERE id=?",(id_,))
+                if c4.button('🗑️', key=f'del{id_}'):
+                    c.execute("DELETE FROM assignments WHERE id=?", (id_,))
                     conn.commit()
                     st.experimental_rerun()
             st.divider()
@@ -202,8 +213,8 @@ with tabs[3]:
         st.info('Earn plants by completing assignments!')
     else:
         cols = st.columns(3)
-        for i,(name,img) in enumerate(plants):
-            cols[i%3].image(img, caption=name, use_column_width=True)
+        for i, (name, img) in enumerate(plants):
+            cols[i % 3].image(img, caption=name, use_column_width=True)
 
 # Footer
 st.markdown('---')
