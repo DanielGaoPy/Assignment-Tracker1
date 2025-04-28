@@ -131,22 +131,27 @@ EMOJIS = [
 EMOJI_MAP = {PLANT_BREEDS[i]: EMOJIS[i] for i in range(len(PLANT_BREEDS))}
 
 # ------------------------------------------------------------------------------
-# ▶ Award plant (used in catalog upon purchase)
+# ▶ Award plant for every 5 completed assignments
 # ------------------------------------------------------------------------------
-def purchase_plant(breed):
-    balance, earned, spent = get_balance()
-    rarity = random.choices(RARITY_CATS, weights=RARITY_WEIGHTS, k=1)[0]
-    cost = RARITY_COSTS[rarity]
-    if balance < cost:
-        st.error(f"Not enough points! Need {cost}, have {balance}.")
-        return
-    c.execute(
-        "INSERT INTO plants (name, awarded_at, rarity, cost) VALUES (?,?,?,?)",
-        (breed, datetime.now().isoformat(), rarity, cost)
-    )
-    conn.commit()
-    st.balloons()
-    st.success(f"Unlocked: {EMOJI_MAP[breed]} {breed} ({rarity}, Cost {cost} pts)")
+def award_plant():
+    total_completed = c.execute("SELECT COUNT(*) FROM assignments WHERE completed=1").fetchone()[0]
+    awards_due = total_completed // 5
+    owned = [row[0] for row in c.execute("SELECT name FROM plants").fetchall()]
+    while len(owned) < awards_due:
+        choices = [b for b in PLANT_BREEDS if b not in owned]
+        if not choices:
+            break
+        breed = random.choice(choices)
+        rarity = random.choices(RARITY_CATS, weights=RARITY_WEIGHTS, k=1)[0]
+        cost = RARITY_COSTS[rarity]
+        c.execute(
+            "INSERT INTO plants (name, awarded_at, rarity, cost) VALUES (?,?,?,?)",
+            (breed, datetime.now().isoformat(), rarity, cost)
+        )
+        conn.commit()
+        owned.append(breed)
+        st.balloons()
+        st.success(f"Unlocked: {EMOJI_MAP[breed]} {breed} ({rarity}, Cost {cost} pts)")
 
 # ------------------------------------------------------------------------------
 # ▶ Load assignments helper
@@ -213,6 +218,7 @@ with tabs[1]:
             if c1.button("✅ Done", key=f"done_{id_}"):
                 c.execute("UPDATE assignments SET completed=1 WHERE id=?", (id_,))
                 conn.commit()
+                award_plant()
                 st.experimental_rerun()
             if c2.button("❌", key=f"del_{id_}"):
                 c.execute("DELETE FROM assignments WHERE id=?", (id_,))
