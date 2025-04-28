@@ -130,10 +130,10 @@ def load_assignments(flag):
 
 # Fixed catalog data
 PLANTS = [
-    "Monstera deliciosa", "Ficus lyrata", "Golden Pothos", "Snake Plant",
-    "Dragon Tree", "ZZ Plant", "Peace Lily", "Red Apple", "Green Apple",
-    "Rose", "Tulip", "Sunflower", "Daisy", "Cherry Blossom", "Banana",
-    "Grapes", "Strawberry", "Cactus", "Four Leaf Clover", "Herb", "Maple Leaf"
+    "Monstera deliciosa", "Ficus lyrata", "Golden Pothos", "Palm Tree",
+    "Cactus", "Daisy", "Clover", "Red Apple", "Green Apple",
+    "Rose", "Tulip", "Sunflower", "Cherry Blossom", "Banana",
+    "Strawberry", "Strawberry", "Cactus", "Maple Leaf", "Herb", "Fern"
 ]
 EMOJIS = [
     "🌱","🌿","🍃","🌴","🌵","🌼","🍀","🍎","🍏",
