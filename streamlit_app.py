@@ -60,7 +60,16 @@ st.markdown(
 # ------------------------------------------------------------------------------
 conn = sqlite3.connect('assignments.db', check_same_thread=False)
 c = conn.cursor()
-# assignments table
+# Add missed columns to plants table
+for col, props in [
+    ('rarity', "TEXT NOT NULL DEFAULT ''"),
+    ('cost',   "INTEGER NOT NULL DEFAULT 0")
+]:
+    try:
+        c.execute(f"ALTER TABLE plants ADD COLUMN {col} {props}")
+    except sqlite3.OperationalError:
+        pass
+# Create assignments table
 c.execute(
     """
     CREATE TABLE IF NOT EXISTS assignments (
@@ -74,15 +83,15 @@ c.execute(
     )
     """
 )
-# plants table
+# Create plants table
 c.execute(
     """
     CREATE TABLE IF NOT EXISTS plants (
         id          INTEGER PRIMARY KEY AUTOINCREMENT,
         name        TEXT    NOT NULL,
         awarded_at  TEXT    NOT NULL,
-        rarity      TEXT    DEFAULT '',
-        cost        INTEGER DEFAULT 0
+        rarity      TEXT    NOT NULL DEFAULT '',
+        cost        INTEGER NOT NULL DEFAULT 0
     )
     """
 )
@@ -125,13 +134,13 @@ PLANT_BREEDS = [
     "Grapes","Strawberry","Cactus","Four Leaf Clover","Herb","Maple Leaf"
 ]
 EMOJIS = [
-    "🌱","🌿","🍃","🌱","🌴","🌿","🌼","🍎","🍏",
-    "🌹","🌷","🌻","🌼","🌸","🍌","🍇","🍓","🌵","🍀","🌾","🍁"
+    "🌱","🌿","🍃","🌴","🌵","🌼","🍀","🍎","🍏",
+    "🌹","🌷","🌻","🌻","🌸","🍌","🍇","🍓","🌵","🍀","🍁"
 ]
 EMOJI_MAP = {PLANT_BREEDS[i]: EMOJIS[i] for i in range(len(PLANT_BREEDS))}
 
 # ------------------------------------------------------------------------------
-# ▶ Award plant for every 5 completed assignments
+# ▶ Award plant for completed assignments
 # ------------------------------------------------------------------------------
 def award_plant():
     total_completed = c.execute("SELECT COUNT(*) FROM assignments WHERE completed=1").fetchone()[0]
@@ -139,8 +148,6 @@ def award_plant():
     owned = [row[0] for row in c.execute("SELECT name FROM plants").fetchall()]
     while len(owned) < awards_due:
         choices = [b for b in PLANT_BREEDS if b not in owned]
-        if not choices:
-            break
         breed = random.choice(choices)
         rarity = random.choices(RARITY_CATS, weights=RARITY_WEIGHTS, k=1)[0]
         cost = RARITY_COSTS[rarity]
@@ -152,6 +159,24 @@ def award_plant():
         owned.append(breed)
         st.balloons()
         st.success(f"Unlocked: {EMOJI_MAP[breed]} {breed} ({rarity}, Cost {cost} pts)")
+
+# ------------------------------------------------------------------------------
+# ▶ Purchase plant manually
+# ------------------------------------------------------------------------------
+def purchase_plant(breed):
+    balance, _, _ = get_balance()
+    rarity = random.choices(RARITY_CATS, weights=RARITY_WEIGHTS, k=1)[0]
+    cost = RARITY_COSTS[rarity]
+    if balance < cost:
+        st.error(f"Not enough points to purchase {breed}. Cost {cost}, you have {balance}.")
+        return
+    c.execute(
+        "INSERT INTO plants (name, awarded_at, rarity, cost) VALUES (?,?,?,?)",
+        (breed, datetime.now().isoformat(), rarity, cost)
+    )
+    conn.commit()
+    st.balloons()
+    st.success(f"Purchased: {EMOJI_MAP[breed]} {breed} ({rarity}, Cost {cost} pts)")
 
 # ------------------------------------------------------------------------------
 # ▶ Load assignments helper
@@ -200,31 +225,26 @@ with tabs[1]:
     rows = load_assignments(0)
     if not rows:
         st.info("No upcoming assignments!")
-    else:
-        for id_, course, assign, a_type, d_date, d_time in rows:
-            dt = datetime.fromisoformat(f"{d_date}T{d_time}")
-            diff = dt - datetime.now()
-            parts = []
-            if diff.days // 7: parts.append(f"{diff.days//7}w")
-            if diff.days % 7: parts.append(f"{diff.days%7}d")
-            h = diff.seconds // 3600
-            if h: parts.append(f"{h}h")
-            m = (diff.seconds % 3600) // 60
-            if m: parts.append(f"{m}m")
-            rem = " ".join(parts) if parts else "Now"
-            st.markdown(f"**{course} - {assign} ({a_type})**  ")
-            st.markdown(f"Due: {dt.strftime('%Y-%m-%d %H:%M')} | Remaining: {rem}")
-            c1, c2 = st.columns([5,1])
-            if c1.button("✅ Done", key=f"done_{id_}"):
-                c.execute("UPDATE assignments SET completed=1 WHERE id=?", (id_,))
-                conn.commit()
-                award_plant()
-                st.experimental_rerun()
-            if c2.button("❌", key=f"del_{id_}"):
-                c.execute("DELETE FROM assignments WHERE id=?", (id_,))
-                conn.commit()
-                st.experimental_rerun()
-            st.markdown("---")
+    for id_, course, assign, a_type, d_date, d_time in rows:
+        dt = datetime.fromisoformat(f"{d_date}T{d_time}")
+        diff = dt - datetime.now()
+        parts=[]
+        if diff.days//7: parts.append(f"{diff.days//7}w")
+        if diff.days%7: parts.append(f"{diff.days%7}d")
+        h=diff.seconds//3600
+        if h: parts.append(f"{h}h")
+        m=(diff.seconds%3600)//60
+        if m: parts.append(f"{m}m")
+        rem=' '.join(parts) if parts else 'Now'
+        st.markdown(f"**{course} - {assign} ({a_type})**  ")
+        st.markdown(f"Due: {dt.strftime('%Y-%m-%d %H:%M')} | Remaining: {rem}")
+        c1,c2 = st.columns([5,1])
+        if c1.button("✅ Done", key=f"done_{id_}"):
+            c.execute("UPDATE assignments SET completed=1 WHERE id=?",(id_,))
+            conn.commit(); award_plant(); st.experimental_rerun()
+        if c2.button("❌", key=f"del_{id_}"):
+            c.execute("DELETE FROM assignments WHERE id=?",(id_,)); conn.commit(); st.experimental_rerun()
+        st.markdown("---")
 
 # --- Completed tab ---
 with tabs[2]:
@@ -232,13 +252,10 @@ with tabs[2]:
     rows = load_assignments(1)
     if not rows:
         st.info("No completed assignments.")
-    else:
-        for id_, course, assign, a_type, d_date, d_time in rows:
-            st.markdown(f"~~{course} - {assign}~~ ({a_type})   Completed: {d_date} {d_time}")
-            if st.button("🗑️ Remove", key=f"rem_{id_}"):
-                c.execute("DELETE FROM assignments WHERE id=?", (id_,))
-                conn.commit()
-                st.experimental_rerun()
+    for id_, course, assign, a_type, d_date, d_time in rows:
+        st.markdown(f"~~{course} - {assign}~~ ({a_type})   Completed: {d_date} {d_time}")
+        if st.button("🗑️ Remove", key=f"rem_{id_}"):
+            c.execute("DELETE FROM assignments WHERE id=?",(id_,)); conn.commit(); st.experimental_rerun()
 
 # --- Plant Catalog tab ---
 with tabs[3]:
@@ -257,9 +274,8 @@ with tabs[4]:
     rows = c.execute("SELECT name,rarity,cost FROM plants").fetchall()
     if not rows:
         st.info("Complete assignments to earn plants!")
-    else:
-        for name, rarity, cost in rows:
-            st.markdown(f"### {EMOJI_MAP.get(name,'🌱')} {name} — {rarity} (Cost {cost} pts)")
+    for name, rarity, cost in rows:
+        st.markdown(f"### {EMOJI_MAP.get(name,'🌱')} {name} — {rarity} (Cost {cost} pts)")
 
 # Footer
 st.markdown("---")
