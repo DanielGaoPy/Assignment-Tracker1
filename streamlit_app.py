@@ -138,7 +138,7 @@ PLANT_BREEDS = [
 ]
 EMOJIS = [
     "🌱","🌿","🍃","🌴","🌵","🌼","🍀","🍎","🍏",
-    "🌹","🌷","🌻","🌸","🌻","🍌","🍇","🍓","🌵","🍀","🍁"
+    "🌹","🌷","🌻","🌸","🍌","🍇","🍓","🌵","🍀","🍁"
 ]
 EMOJI_MAP = {breed: EMOJIS[i % len(EMOJIS)] for i, breed in enumerate(PLANT_BREEDS)}
 # Assign fixed rarity to catalog items once
@@ -249,74 +249,3 @@ with tabs[1]:
         diff = dt - datetime.now()
         parts=[]
         if diff.days//7: parts.append(f"{diff.days//7}w")
-        if diff.days%7: parts.append(f"{diff.days%7}d")
-        h = diff.seconds//3600; m=(diff.seconds%3600)//60
-        if h: parts.append(f"{h}h");
-        if m: parts.append(f"{m}m")
-        rem = ' '.join(parts) or 'Now'
-        st.markdown(f"**{course} - {assign} ({a_type})**  ")
-        st.markdown(f"Due: {dt:%Y-%m-%d %H:%M} | Remaining: {rem}")
-        c1,c2 = st.columns([5,1])
-        if c1.button("✅ Done", key=f"done_{id_}"):
-            c.execute("UPDATE assignments SET completed=1 WHERE id=?", (id_,))
-            conn.commit()
-            award_plant()
-            st.experimental_rerun()
-        if c2.button("❌", key=f"del_{id_}"):
-            c.execute("DELETE FROM assignments WHERE id=?", (id_,))
-            conn.commit()
-            st.experimental_rerun()
-        st.markdown("---")
-
-# --- Completed Tab ---
-with tabs[2]:
-    st.subheader("✅ Completed Assignments")
-    rows = load_assignments(1)
-    if not rows:
-        st.info("No completed assignments.")
-    for id_, course, assign, a_type, d_date, d_time in rows:
-        st.markdown(f"~~{course} - {assign}~~ ({a_type})   Completed: {d_date} {d_time}")
-        if st.button("🗑️ Remove", key=f"rem_{id_}"):
-            c.execute("DELETE FROM assignments WHERE id=?", (id_,))
-            conn.commit()
-            st.experimental_rerun()
-
-# --- Plant Catalog Tab ---
-with tabs[3]:
-    st.subheader("🌿 Plant Catalog")
-    st.markdown("""
-    <div class='roll-button-container'>
-      <button>🎲 Roll for a Plant (5 pts)</button>
-    </div>
-    """, unsafe_allow_html=True)
-    if st.button("", key="roll_trigger"):  # hidden trigger
-        roll_plant()
-    st.markdown("---")
-    grid = st.columns(4)
-    for i, breed in enumerate(PLANT_BREEDS):
-        rarity = CATALOG_RARITY[breed]
-        color = COLORS[rarity]
-        col = grid[i % 4]
-        with col:
-            st.markdown(
-                f"<div class='card' style='background-color:{color}'>"
-                f"<p style='font-size:12px;color:#1B4332'>{rarity}</p>"
-                f"<div style='font-size:48px'>{EMOJI_MAP[breed]}</div>"
-                f"<h4 style='color:#1B4332'>{breed}</h4></div>",
-                unsafe_allow_html=True
-            )
-
-# --- Collected Plants Tab ---
-with tabs[4]:
-    st.subheader("🌳 Collected Plants")
-    data = c.execute("SELECT name,rarity,cost FROM plants").fetchall()
-    if not data:
-        st.info("Complete assignments to earn plants!")
-    for name, rarity, cost in data:
-        color = COLORS.get(rarity, COLORS['Common'])
-        st.markdown(
-            f"<div class='card' style='background-color:{color}'>"
-            f"<p style='font-size:12px;color:#1B4332'>{rarity}</p>"
-            f"<div style='font-size:48px'>{EMOJI_MAP.get(name,'🌱')}</div>"
-            f"<h4 style='color:#1B4332'>{name}</h4></div>", '\
-").strip(),
