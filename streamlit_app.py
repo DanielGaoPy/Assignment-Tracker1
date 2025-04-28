@@ -73,13 +73,11 @@ st.markdown(
 # ----------------------------------------------------------------------------
 conn = sqlite3.connect('assignments.db', check_same_thread=False)
 c = conn.cursor()
-# Migrate columns
 for col, props in [('rarity', "TEXT NOT NULL DEFAULT ''"), ('cost', "INTEGER NOT NULL DEFAULT 0")]:
     try:
         c.execute(f"ALTER TABLE plants ADD COLUMN {col} {props}")
     except sqlite3.OperationalError:
         pass
-# Create tables
 c.execute("""
 CREATE TABLE IF NOT EXISTS assignments (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -110,10 +108,10 @@ RARITY_CATS = ["Common","Rare","Epic","Legendary"]
 RARITY_WEIGHTS = [0.5,0.3,0.15,0.05]
 ROLL_COST = 5
 COLORS = {  # more vivid colors
-    "Common": "#e6ffe6",       # light green
-    "Rare": "#4da6ff",        # vivid blue
-    "Epic": "#b84dff",        # vivid purple
-    "Legendary": "#ffd11a"    # gold
+    "Common": "#e6ffe6",
+    "Rare": "#4da6ff",
+    "Epic": "#b84dff",
+    "Legendary": "#ffd11a"
 }
 
 # ----------------------------------------------------------------------------
@@ -128,16 +126,16 @@ def load_assignments(flag):
         (flag,)
     ).fetchall()
 
-# Fixed catalog data
+# Fixed catalog data (duplicates removed)
 PLANTS = [
     "Monstera deliciosa", "Ficus lyrata", "Golden Pothos", "Palm Tree",
     "Cactus", "Daisy", "Clover", "Red Apple", "Green Apple",
     "Rose", "Tulip", "Sunflower", "Cherry Blossom", "Banana",
-    "Strawberry", "Strawberry", "Cactus", "Maple Leaf", "Herb", "Fern"
+    "Strawberry", "Maple Leaf", "Herb", "Fern"
 ]
 EMOJIS = [
     "🌱","🌿","🍃","🌴","🌵","🌼","🍀","🍎","🍏",
-    "🌹","🌷","🌻","🌸","🍌","🍇","🍓","🌵","🍀","🍁"
+    "🌹","🌷","🌻","🌸","🍌","🍇","🍓","🍁"
 ]
 EMOJI_MAP = {PLANTS[i]: EMOJIS[i % len(EMOJIS)] for i in range(len(PLANTS))}
 CATALOG_RARITY = {p: random.choices(RARITY_CATS, weights=RARITY_WEIGHTS, k=1)[0] for p in PLANTS}
@@ -304,9 +302,9 @@ with tab_col:
             f"<div style='font-size:48px'>{EMOJI_MAP.get(name,'🌱')}</div>"
             f"<h4 style='color:#1B4332'>{name}</h4>"
             f"</div>",
-            unsafe_allow_html=True
+            unsafe_ALLOW_HTML=True
         )
 
-# Footer
+#/Footer
 st.markdown("---")
 st.caption("Made with ❤️ and plants 🌿")
