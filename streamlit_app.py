@@ -3,19 +3,28 @@ import sqlite3
 from datetime import date, datetime
 
 # ------------------------------------------------------------------------------
-# ▶ Database setup (runs once)
+# ▶ Database setup & migration (runs once)
 # ------------------------------------------------------------------------------
 conn = sqlite3.connect('assignments.db', check_same_thread=False)
 c = conn.cursor()
-# Create table with new fields: type, completed
+
+# Migration: Add new columns if they don't exist
+for column, props in [("type", "TEXT NOT NULL DEFAULT 'Assignment'"), ("completed", "INTEGER NOT NULL DEFAULT 0")]:
+    try:
+        c.execute(f"ALTER TABLE assignments ADD COLUMN {column} {props}")
+    except sqlite3.OperationalError:
+        # Column already exists
+        pass
+
+# Create table if not exists (handles fresh setup)
 c.execute("""
     CREATE TABLE IF NOT EXISTS assignments (
         id          INTEGER PRIMARY KEY AUTOINCREMENT,
-        course      TEXT NOT NULL,
-        assignment  TEXT NOT NULL,
-        type        TEXT NOT NULL,
-        due_date    TEXT NOT NULL,
-        completed   INTEGER DEFAULT 0
+        course      TEXT     NOT NULL,
+        assignment  TEXT     NOT NULL,
+        type        TEXT     NOT NULL,
+        due_date    TEXT     NOT NULL,
+        completed   INTEGER  NOT NULL DEFAULT 0
     )
 """)
 conn.commit()
@@ -39,7 +48,7 @@ with tabs[0]:
         st.subheader("➕ Add a New Assignment")
         course = st.text_input("Course Name")
         assignment = st.text_input("Assignment Title")
-        a_type = st.selectbox("Assignment Type", ["Quiz", "Mid-Term", "Final", "Test", "Project", "Paper"])
+        a_type = st.selectbox("Assignment Type", ["Quiz", "Mid-Term", "Final", "Test", "Project", "Paper"], index=0)
         due_date = st.date_input("Due Date", value=date.today())
         submitted = st.form_submit_button("Add Assignment")
         if submitted:
