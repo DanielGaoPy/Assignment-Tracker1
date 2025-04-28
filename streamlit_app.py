@@ -7,7 +7,7 @@ from datetime import date, datetime, time as dtime
 # ▶ Page configuration (must be first Streamlit command)
 # ------------------------------------------------------------------------------
 st.set_page_config(
-    page_title="🌱 Plant-Based Assignment Tracker",
+    page_title="Plant-Based Assignment Tracker",
     page_icon="🌿",
     layout="wide"
 )
@@ -15,36 +15,40 @@ st.set_page_config(
 # ------------------------------------------------------------------------------
 # ▶ Custom CSS for plant-based theme
 # ------------------------------------------------------------------------------
-st.markdown(
-    """
-    <style>
-        /* App background */
-        .stApp {
-            background-color: #F0FBF3;
-        }
-        /* Button styling */
-        .stButton>button {
-            background-color: #A8D5BA;
-            color: #1B4332;
-            border-radius: 10px;
-            padding: 5px 10px;
-        }
-        /* Tab header color */
-        .css-1dq8tca {
-            color: #1B4332 !important;
-        }
-    </style>
-    """,
-    unsafe_allow_html=True
-)
+st.markdown("""
+<style>
+    /* Dark green background */
+    .stApp {
+        background-color: #2E8B57;
+        color: #FFFFFF;
+    }
+    /* Centered, larger title */
+    .custom-title {
+        text-align: center;
+        font-size: 48px;
+        margin-bottom: 20px;
+        color: #FFFFFF;
+    }
+    /* Button styling */
+    .stButton>button {
+        background-color: #A8D5BA;
+        color: #1B4332;
+        border-radius: 10px;
+        padding: 8px 16px;
+        font-weight: bold;
+    }
+    /* Tab labels */
+    .css-1dq8tca {
+        color: #FFFFFF !important;
+    }
+</style>
+""", unsafe_allow_html=True)
 
 # ------------------------------------------------------------------------------
-# ▶ Database setup & migration (runs once)
+# ▶ Database setup & migration
 # ------------------------------------------------------------------------------
 conn = sqlite3.connect('assignments.db', check_same_thread=False)
 c = conn.cursor()
-
-# Ensure columns exist
 for col, props in [
     ('type', "TEXT NOT NULL DEFAULT 'Assignment'"),
     ('due_time', "TEXT NOT NULL DEFAULT '23:59:00'"),
@@ -54,8 +58,6 @@ for col, props in [
         c.execute(f"ALTER TABLE assignments ADD COLUMN {col} {props}")
     except sqlite3.OperationalError:
         pass
-
-# Create assignments table if not exists
 c.execute(
     """
     CREATE TABLE IF NOT EXISTS assignments (
@@ -69,14 +71,13 @@ c.execute(
     )
     """
 )
-# Create plants table if not exists
 c.execute(
     """
     CREATE TABLE IF NOT EXISTS plants (
-        id         INTEGER PRIMARY KEY AUTOINCREMENT,
-        name       TEXT    NOT NULL,
-        image_url  TEXT    NOT NULL,
-        awarded_at TEXT    NOT NULL
+        id          INTEGER PRIMARY KEY AUTOINCREMENT,
+        name        TEXT    NOT NULL,
+        image_url   TEXT    NOT NULL,
+        awarded_at  TEXT    NOT NULL
     )
     """
 )
@@ -86,23 +87,25 @@ conn.commit()
 # ▶ Plant catalog
 # ------------------------------------------------------------------------------
 PLANTS = [
-    {"name": "Monstera deliciosa",       "url": "https://images.unsplash.com/photo-1579370318442-73a6ff72b0a0?auto=format&fit=crop&w=400&q=80"},
+    {"name": "Monstera deliciosa", "url": "https://images.unsplash.com/photo-1579370318442-73a6ff72b0a0?auto=format&fit=crop&w=400&q=80"},
     {"name": "Ficus lyrata (Fiddle Leaf Fig)", "url": "https://images.unsplash.com/photo-1534081333815-ae5019106622?auto=format&fit=crop&w=400&q=80"},
-    {"name": "Golden Pothos",            "url": "https://images.unsplash.com/photo-1556912167-f556f1f39d6b?auto=format&fit=crop&w=400&q=80"},
-    {"name": "Snake Plant",              "url": "https://images.unsplash.com/photo-1590254074496-c36d4871eaf5?auto=format&fit=crop&w=400&q=80"},
-    {"name": "Dragon Tree",              "url": "https://images.unsplash.com/photo-1600607689867-020a729b3d4d?auto=format&fit=crop&w=400&q=80"},
-    {"name": "ZZ Plant",                 "url": "https://images.unsplash.com/photo-1592423492834-77e6ec2ffc3e?auto=format&fit=crop&w=400&q=80"},
-    {"name": "Peace Lily",               "url": "https://images.unsplash.com/photo-1602524815465-f2b36bb874f9?auto=format&fit=crop&w=400&q=80"},
-    {"name": "Zebra Haworthia",          "url": "https://images.unsplash.com/photo-1560844517-08c756ab6b27?auto=format&fit=crop&w=400&q=80"},
-    {"name": "Aloe vera",                "url": "https://images.unsplash.com/photo-1542219550-2ab3012dff5e?auto=format&fit=crop&w=400&q=80"},
-    {"name": "Heartleaf Philodendron",   "url": "https://images.unsplash.com/photo-1556886564-6a2053850d29?auto=format&fit=crop&w=400&q=80"},
-    {"name": "Boston Fern",              "url": "https://images.unsplash.com/photo-1501004318641-b39e6451bec6?auto=format&fit=crop&w=400&q=80"},
-    {"name": "String of Pearls",         "url": "https://images.unsplash.com/photo-1542831371-29b0f74f9713?auto=format&fit=crop&w=400&q=80"},
-    {"name": "Rubber Plant",             "url": "https://images.unsplash.com/photo-1587285133999-32d66b2655de?auto=format&fit=crop&w=400&q=80"},
-    {"name": "Spider Plant",             "url": "https://images.unsplash.com/photo-1493927732325-8a15479f4d49?auto=format&fit=crop&w=400&q=80"}
+    {"name": "Golden Pothos", "url": "https://images.unsplash.com/photo-1556912167-f556f1f39d6b?auto=format&fit=crop&w=400&q=80"},
+    {"name": "Snake Plant", "url": "https://images.unsplash.com/photo-1590254074496-c36d4871eaf5?auto=format&fit=crop&w=400&q=80"},
+    {"name": "Dragon Tree", "url": "https://images.unsplash.com/photo-1600607689867-020a729b3d4d?auto=format&fit=crop&w=400&q=80"},
+    {"name": "ZZ Plant", "url": "https://images.unsplash.com/photo-1592423492834-77e6ec2ffc3e?auto=format&fit=crop&w=400&q=80"},
+    {"name": "Peace Lily", "url": "https://images.unsplash.com/photo-1602524815465-f2b36bb874f9?auto=format&fit=crop&w=400&q=80"},
+    {"name": "Zebra Haworthia", "url": "https://images.unsplash.com/photo-1560844517-08c756ab6b27?auto=format&fit=crop&w=400&q=80"},
+    {"name": "Aloe vera", "url": "https://images.unsplash.com/photo-1542219550-2ab3012dff5e?auto=format&fit=crop&w=400&q=80"},
+    {"name": "Heartleaf Philodendron", "url": "https://images.unsplash.com/photo-1556886564-6a2053850d29?auto=format&fit=crop&w=400&q=80"},
+    {"name": "Boston Fern", "url": "https://images.unsplash.com/photo-1501004318641-b39e6451bec6?auto=format&fit=crop&w=400&q=80"},
+    {"name": "String of Pearls", "url": "https://images.unsplash.com/photo-1542831371-29b0f74f9713?auto=format&fit=crop&w=400&q=80"},
+    {"name": "Rubber Plant", "url": "https://images.unsplash.com/photo-1587285133999-32d66b2655de?auto=format&fit=crop&w=400&q=80"},
+    {"name": "Spider Plant", "url": "https://images.unsplash.com/photo-1493927732325-8a15479f4d49?auto=format&fit=crop&w=400&q=80"}
 ]
 
-# Award a plant when completing an assignment
+# ------------------------------------------------------------------------------
+# ▶ Award plant on completion
+# ------------------------------------------------------------------------------
 def award_plant():
     owned = [row[0] for row in c.execute("SELECT name FROM plants").fetchall()]
     choices = [p for p in PLANTS if p['name'] not in owned]
@@ -118,19 +121,23 @@ def award_plant():
     st.balloons()
     st.success(f"New plant unlocked: {plant['name']} 🌿")
 
-# Helper to load assignments
-
+# ------------------------------------------------------------------------------
+# ▶ Helper to load assignments
+# ------------------------------------------------------------------------------
 def load_assignments(flag):
     return c.execute(
         "SELECT id, course, assignment, type, due_date, due_time FROM assignments WHERE completed=? ORDER BY due_date, due_time",
         (flag,)
     ).fetchall()
 
-# App Title and Tabs
-st.title("🌱 Plant-Based Assignment Tracker 🌱")
-tabs = st.tabs(["Add", "Upcoming", "Completed", "Garden"])
+# ------------------------------------------------------------------------------
+# ▶ App header & tabs
+# ------------------------------------------------------------------------------
+st.markdown('<div class="custom-title">🌱 Plant-Based Assignment Tracker 🌱</div>', unsafe_allow_html=True)
 
-# Add Tab
+tabs = st.tabs(["Add", "Upcoming", "Completed", "Plant Catalog", "Collected Plants"])
+
+# --- Add Tab ---
 with tabs[0]:
     with st.form('add_form', clear_on_submit=True):
         st.subheader('Add Assignment')
@@ -148,16 +155,16 @@ with tabs[0]:
                 conn.commit()
                 st.success('Assignment added!')
             else:
-                st.error('Please enter course and title')
+                st.error('Please enter both course and title.')
 
-# Upcoming Tab
+# --- Upcoming Tab ---
 with tabs[1]:
     st.subheader('Upcoming Assignments')
-    upcoming = load_assignments(0)
-    if not upcoming:
+    rows = load_assignments(0)
+    if not rows:
         st.info('No upcoming assignments')
     else:
-        for id_, course, title, a_type, d_date, d_time in upcoming:
+        for id_, course, title, a_type, d_date, d_time in rows:
             dt = datetime.fromisoformat(f"{d_date}T{d_time}")
             diff = dt - datetime.now()
             weeks = diff.days // 7
@@ -181,14 +188,14 @@ with tabs[1]:
                     st.experimental_rerun()
             st.divider()
 
-# Completed Tab
+# --- Completed Tab ---
 with tabs[2]:
     st.subheader('Completed Assignments')
-    completed = load_assignments(1)
-    if not completed:
+    rows = load_assignments(1)
+    if not rows:
         st.info('No completed assignments')
     else:
-        for id_, course, title, a_type, d_date, d_time in completed:
+        for id_, course, title, a_type, d_date, d_time in rows:
             with st.container():
                 c1, c2, c3, c4 = st.columns([2,4,3,1])
                 c1.markdown(f"~~{course}~~")
@@ -200,15 +207,22 @@ with tabs[2]:
                     st.experimental_rerun()
             st.divider()
 
-# Garden Tab
+# --- Plant Catalog Tab ---
 with tabs[3]:
-    st.subheader('Your Garden')
-    plants = c.execute("SELECT name, image_url FROM plants").fetchall()
-    if not plants:
-        st.info('Earn plants by completing assignments!')
+    st.subheader('Plant Catalog')
+    cols = st.columns(3)
+    for i, plant in enumerate(PLANTS):
+        cols[i % 3].image(plant['url'], caption=plant['name'], use_column_width=True)
+
+# --- Collected Plants Tab ---
+with tabs[4]:
+    st.subheader('Collected Plants')
+    collected = c.execute("SELECT name, image_url FROM plants").fetchall()
+    if not collected:
+        st.info('Complete assignments to earn plants!')
     else:
         cols = st.columns(3)
-        for i, (name, img) in enumerate(plants):
+        for i, (name, img) in enumerate(collected):
             cols[i % 3].image(img, caption=name, use_column_width=True)
 
 # Footer
