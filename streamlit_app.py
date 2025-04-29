@@ -34,6 +34,8 @@ st.markdown(
         h1 {
             text-align: center;
             margin-bottom: 20px;
+            font-size: 120px;
+            transition: font-size 0.1s ease-out;
         }
         .stats-left {
             position: fixed;
@@ -85,6 +87,16 @@ st.markdown(
             margin: 20px 0;
         }
     </style>
+    <script>
+        window.addEventListener('scroll', () => {
+            const maxSize = 120;
+            const minSize = 40;
+            const scroll = window.scrollY;
+            const h1 = document.querySelector('h1');
+            const newSize = Math.max(minSize, maxSize - scroll / 5);
+            if (h1) h1.style.fontSize = newSize + 'px';
+        });
+    </script>
     """,
     unsafe_allow_html=True
 )
