@@ -24,11 +24,22 @@ st.markdown(
             margin: 0 auto;
         }
         [data-testid="stSidebar"] {
-            background-color: #FFFFFF !important;
+            background: linear-gradient(135deg, #a8e063 0%, #56ab2f 100%) !important;
             color: #000000 !important;
-            border-radius: 12px;
+            border-radius: 16px;
             padding: 16px;
-            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            box-shadow: 0 6px 12px rgba(0,0,0,0.15);
+        }
+        /* Sidebar buttons */
+        [data-testid="stSidebar"] button {
+            width: 100% !important;
+            background-color: #228B22 !important;
+            color: #FFFFFF !important;
+            border: none !important;
+            border-radius: 8px !important;
+            padding: 10px 0 !important;
+            margin: 8px 0 !important;
+            font-size: 16px !important;
         }
         h1 {
             text-align: center;
@@ -53,13 +64,7 @@ st.markdown(
             border: 1px solid #000000 !important;
             border-radius: 2px !important;
         }
-        /* Make form container white for assignment inputs */
-        .stForm, form#form_add {
-            background-color: #FFFFFF !important;
-            color: #000000 !important;
-            padding: 12px !important;
-            border-radius: 4px !important;
-        }
+        
         .card {
             width: 160px;
             height: 200px;
