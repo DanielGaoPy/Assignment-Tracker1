@@ -5,6 +5,11 @@ import time
 from datetime import date, datetime, time as dtime
 
 # ----------------------------------------------------------------------------
+# ▶ Points Mapping (Ensure defined for selectbox)
+# ----------------------------------------------------------------------------
+POINTS_MAP = {"Homework":1, "Quiz":2, "Paper":3, "Project":4, "Test":4, "Mid-Term":5, "Final":10}
+
+# ----------------------------------------------------------------------------
 # ▶ Custom CSS & Dynamic Title
 # ----------------------------------------------------------------------------
 st.markdown(
