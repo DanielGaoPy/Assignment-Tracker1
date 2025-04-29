@@ -23,8 +23,8 @@ st.markdown(
         [data-testid="stAppViewContainer"] {
             background-color: #00A550;
             color: #FFFFFF;
-            border: 10px solid #FFFFFF;
-            padding: 20px;
+            border: 100px solid #FFFFFF;
+            padding: 100px;
             max-width: 2000px;
             margin: 0 auto;
         }
