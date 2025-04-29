@@ -234,7 +234,9 @@ with st.sidebar:
     if st.button("🌳 Collected Plants"):st.session_state.page='Collected Plants'
 
 # Header
-st.markdown(f"<div class='stats-left'>🌿</div>", unsafe_allow_html=True)
+# Display collected assignment points in top-left
+points = get_balance()
+st.markdown(f"<div class='stats-left'>Points: {points}</div>", unsafe_allow_html=True)
 st.markdown('<h1 style="font-size:120px;">🌿</h1>', unsafe_allow_html=True)
 
 # Page Content
@@ -297,7 +299,7 @@ elif page == 'Plant Catalog':
 
 elif page == 'Collected Plants':
     st.subheader("🌳 Collected Plants")
-    # Fetch unique plants excluding roll-cost entries
+    # Gather unique collected plants (exclude roll costs)
     rows = c.execute("SELECT name,rarity,cost FROM plants").fetchall()
     seen = set()
     filtered = []
@@ -310,16 +312,21 @@ elif page == 'Collected Plants':
         filtered.append((name, rarity, cost))
     if not filtered:
         st.info("No collected plants yet.")
-    for name, rarity, cost in filtered:
-        color = COLORS.get(rarity, COLORS['Common'])
-        st.markdown(
-            f"<div class='card' style='background-color:{color}'>"
-            f"<p style='font-size:12px;color:#1B4332'>{rarity}</p>"
-            f"<div style='font-size:48px'>{EMOJI_MAP.get(name,'🌱')}</div>"
-            f"<h4 style='color:#1B4332;text-align:center'>{name}</h4>"
-            f"</div>",
-            unsafe_allow_html=True
-        )
+    else:
+        # Render in grid matching Plant Catalog style
+        cols = st.columns(4)
+        for i, (name, rarity, cost) in enumerate(filtered):
+            color = COLORS.get(rarity, COLORS['Common'])
+            col = cols[i % 4]
+            with col:
+                st.markdown(
+                    f"<div class='card' style='background-color:{color}'>"
+                    f"<p style='font-size:12px;color:#1B4332'>{rarity}</p>"
+                    f"<div style='font-size:48px'>{EMOJI_MAP.get(name,'🌱')}</div>"
+                    f"<h4 style='color:#1B4332;text-align:center'>{name}</h4>"
+                    f"</div>",
+                    unsafe_allow_html=True
+                )
 # Footer
 st.markdown("---")
 st.caption("Made with ❤️ and plants 🌿")
