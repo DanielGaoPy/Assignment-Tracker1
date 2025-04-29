@@ -23,7 +23,7 @@ st.markdown(
         [data-testid="stAppViewContainer"] {
             background-color: #00A550;
             color: #FFFFFF;
-            border: 2px solid #FFFFFF;
+            border: 1px solid #FFFFFF;
             padding: 10px;
         }
         h1 {
