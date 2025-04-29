@@ -151,7 +151,7 @@ def load_assignments(flag):
 PLANTS = [
     "Monstera deliciosa","Ficus lyrata","Golden Pothos","Palm Tree",
     "Cactus","Cherry Blossom","Clover","Red Apple","Green Apple",
-    "Rose","Tulip","Sunflower","Banana","Grape","Strawberry","Herb","Fern"
+    "Rose","Tulip","Sunflower","Banana","Grape","Strawberry"
 ]
 EMOJIS = [
     "🌱","🌿","🍃","🌴","🌵","🌼","🍀","🍎","🍏",
@@ -290,7 +290,7 @@ elif page == 'Plant Catalog':
                 f"<div class='card' style='background-color:{color}'>"
                 f"<p style='font-size:12px;color:#1B4332'>{rarity}</p>"
                 f"<div style='font-size:48px'>{EMOJI_MAP[p]}</div>"
-                f"<h4 style='color:#1B4332'>{p}</h4>"
+                f"<h4 style='color:#1B4332; text-align:center'>{p}</h4>"
                 f"</div>",
                 unsafe_allow_html=True
             )
