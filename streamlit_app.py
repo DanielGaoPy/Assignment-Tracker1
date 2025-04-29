@@ -20,13 +20,12 @@ st.markdown(
     """
     <style>
         [data-testid="stAppViewContainer"] {
-            background-color: #228B22;
+            background-color: #00A550;
             color: #FFFFFF;
             border: 4px solid #FFFFFF;
             padding: 10px;
         }
         h1 {
-            font-size: 80px;
             text-align: center;
             margin-bottom: 20px;
         }
@@ -73,11 +72,13 @@ st.markdown(
 # ----------------------------------------------------------------------------
 conn = sqlite3.connect('assignments.db', check_same_thread=False)
 c = conn.cursor()
+# Migrate columns
 for col, props in [('rarity', "TEXT NOT NULL DEFAULT ''"), ('cost', "INTEGER NOT NULL DEFAULT 0")]:
     try:
         c.execute(f"ALTER TABLE plants ADD COLUMN {col} {props}")
     except sqlite3.OperationalError:
         pass
+# Create tables
 c.execute("""
 CREATE TABLE IF NOT EXISTS assignments (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -107,7 +108,7 @@ POINTS_MAP = {"Homework":1, "Quiz":2, "Paper":3, "Project":4, "Test":4, "Mid-Ter
 RARITY_CATS = ["Common","Rare","Epic","Legendary"]
 RARITY_WEIGHTS = [0.5,0.3,0.15,0.05]
 ROLL_COST = 5
-COLORS = {  # more vivid colors
+COLORS = {
     "Common": "#e6ffe6",
     "Rare": "#4da6ff",
     "Epic": "#b84dff",
@@ -126,12 +127,11 @@ def load_assignments(flag):
         (flag,)
     ).fetchall()
 
-# Fixed catalog data (duplicates removed)
+# Fixed catalog data
 PLANTS = [
     "Monstera deliciosa", "Ficus lyrata", "Golden Pothos", "Palm Tree",
-    "Cactus", "Daisy", "Clover", "Red Apple", "Green Apple",
-    "Rose", "Tulip", "Sunflower", "Cherry Blossom", "Banana",
-    "Strawberry", "Maple Leaf", "Herb", "Fern"
+    "Cactus", "Cherry Blossom", "Clover", "Red Apple", "Green Apple",
+    "Rose", "Tulip", "Sunflower", "Banana", "Grape", "Strawberry", "Herb", "Fern"
 ]
 EMOJIS = [
     "🌱","🌿","🍃","🌴","🌵","🌼","🍀","🍎","🍏",
@@ -204,8 +204,8 @@ def roll_plant():
 # ----------------------------------------------------------------------------
 # ▶ UI Rendering
 # ----------------------------------------------------------------------------
-st.markdown(f"<div class='stats-left'>Points: {get_balance()}</div>", unsafe_allow_html=True)
-st.markdown('<h1>🌱 Plant-Based Assignment Tracker 🌱</h1>', unsafe_allow_html=True)
+st.markdown(f"<div class='stats-left'>🌿</div>", unsafe_allow_html=True)
+st.markdown('<h1 style=\"font-size:120px; text-align:center;\">🌿</h1>', unsafe_allow_html=True)
 
 tab_add, tab_upc, tab_cmp, tab_cat, tab_col = st.tabs([
     "Add", "Upcoming", "Completed", "Plant Catalog", "Collected Plants"
@@ -302,9 +302,9 @@ with tab_col:
             f"<div style='font-size:48px'>{EMOJI_MAP.get(name,'🌱')}</div>"
             f"<h4 style='color:#1B4332'>{name}</h4>"
             f"</div>",
-            unsafe_ALLOW_HTML=True
+            unsafe_allow_html=True
         )
 
-#/Footer
+# Footer
 st.markdown("---")
 st.caption("Made with ❤️ and plants 🌿")
