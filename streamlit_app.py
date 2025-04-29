@@ -23,13 +23,14 @@ st.markdown(
         [data-testid="stAppViewContainer"] {
             background-color: #00A550;
             color: #FFFFFF;
-            border-top: 10px solid #FFFFFF;
-            border-left: 10px solid #FFFFFF;
-            border-right: 10px solid #FFFFFF;
-            border-bottom: none;
+            border: none;
             padding: 10px;
             max-width: 1600px;
             margin: 0 auto;
+        }
+        [data-testid="stSidebar"] {
+            background-color: #FFFFFF !important;
+            color: #000000 !important;
         }
         h1 {
             text-align: center;
