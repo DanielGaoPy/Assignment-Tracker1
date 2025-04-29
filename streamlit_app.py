@@ -297,19 +297,29 @@ elif page == 'Plant Catalog':
 
 elif page == 'Collected Plants':
     st.subheader("🌳 Collected Plants")
-    data = c.execute("SELECT name,rarity,cost FROM plants").fetchall()
-    if not data: st.info("No collected plants yet.")
-    for name,rarity,cost in data:
-        color = COLORS.get(rarity,COLORS['Common'])
+    # Fetch unique plants excluding roll-cost entries
+    rows = c.execute("SELECT name,rarity,cost FROM plants").fetchall()
+    seen = set()
+    filtered = []
+    for name, rarity, cost in rows:
+        if name == 'RollCost':
+            continue
+        if name in seen:
+            continue
+        seen.add(name)
+        filtered.append((name, rarity, cost))
+    if not filtered:
+        st.info("No collected plants yet.")
+    for name, rarity, cost in filtered:
+        color = COLORS.get(rarity, COLORS['Common'])
         st.markdown(
             f"<div class='card' style='background-color:{color}'>"
             f"<p style='font-size:12px;color:#1B4332'>{rarity}</p>"
             f"<div style='font-size:48px'>{EMOJI_MAP.get(name,'🌱')}</div>"
-            f"<h4 style='color:#1B4332'>{name}</h4>"
+            f"<h4 style='color:#1B4332;text-align:center'>{name}</h4>"
             f"</div>",
             unsafe_allow_html=True
         )
-
 # Footer
 st.markdown("---")
 st.caption("Made with ❤️ and plants 🌿")
