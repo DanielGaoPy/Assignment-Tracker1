@@ -175,7 +175,7 @@ EMOJIS = [
     "🍍","🍒","🍑","🥭","🥑","🎋","🌲","🌾","🍁",
     "🍄","🎄","🎍","💐","🌼","🌺","🥀","🌳","🌴"
 ]
-EMOJI_MAP = {PLANTS[i]: EMOJIS[i] for i in range(len(PLANTS))}
+EMOJI_MAP = {PLANTS[i]: EMOJIS[i % len(EMOJIS)] for i in range(len(PLANTS))}
 CATALOG_RARITY = {p: random.choices(RARITY_CATS, weights=RARITY_WEIGHTS, k=1)[0] for p in PLANTS}
 
 # ----------------------------------------------------------------------------
