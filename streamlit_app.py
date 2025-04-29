@@ -201,6 +201,8 @@ def roll_plant():
 if 'page' not in st.session_state:
     st.session_state.page = 'Add'
 with st.sidebar:
+    # Close sidebar arrow indicator
+    st.markdown("<p style='font-size:24px;color:#00A550;'>⬅️ Close</p>", unsafe_allow_html=True)
     st.title("📋 Navigate")
     if st.button("➕ Add Assignment"): st.session_state.page='Add'
     if st.button("⏳ Upcoming"):       st.session_state.page='Upcoming'
