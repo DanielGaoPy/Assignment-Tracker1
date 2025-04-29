@@ -24,11 +24,25 @@ st.markdown(
             margin: 0 auto;
         }
         [data-testid="stSidebar"] {
-            background: linear-gradient(135deg, #a8e063 0%, #56ab2f 100%) !important;
-            color: #000000 !important;
-            border-radius: 16px;
-            padding: 16px;
-            box-shadow: 0 6px 12px rgba(0,0,0,0.15);
+            background: linear-gradient(145deg, #74c69d 0%, #2d6a4f 100%) !important;
+            color: #FFFFFF !important;
+            border-radius: 20px;
+            padding: 20px;
+            box-shadow: 0 8px 16px rgba(0,0,0,0.2);
+            margin: 10px;
+            transition: box-shadow 0.3s ease;
+        }
+        /* Sidebar hover effect */
+        [data-testid="stSidebar"]:hover {
+            box-shadow: 0 12px 24px rgba(0,0,0,0.3);
+        }
+        /* Sidebar title styling */
+        [data-testid="stSidebar"] .title {
+            font-size: 28px !important;
+            font-weight: bold;
+            text-align: center;
+            margin-bottom: 16px;
+            color: #FFFFFF !important;
         }
         /* Sidebar buttons */
         [data-testid="stSidebar"] button {
@@ -55,14 +69,29 @@ st.markdown(
             font-size: 24px;
             font-weight: bold;
         }
+        .stats-right {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            color: #FFFFFF;
+            font-size: 24px;
+            font-weight: bold;
+        }
         input, .stTextInput>div>div>input,
         .stDateInput>div>div>input,
         .stTimeInput>div>div>input,
         .stSelectbox>div>div {
             background-color: #FFFFFF !important;
             color: #000000 !important;
-            border: 1px solid #000000 !important;
-            border-radius: 2px !important;
+            border: 2px solid #000000 !important;
+            border-radius: 4px !important;
+        }
+        /* Style the add-assignment form container */
+        form#form_add, .stForm {
+            background-color: #FFFFFF !important;
+            border: 2px solid #000000 !important;
+            border-radius: 8px !important;
+            padding: 16px !important;
         }
         
         .card {
