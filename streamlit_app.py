@@ -159,6 +159,9 @@ st.markdown(
 st.markdown('<h1 style="font-size:120px;">🌿</h1>', unsafe_allow_html=True)
 
 # Page Content
+# Initialize navigation state
+if 'page' not in st.session_state:
+    st.session_state.page = 'Add'
 page = st.session_state.page
 
 if page == 'Add':
