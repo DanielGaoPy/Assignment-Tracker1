@@ -19,9 +19,15 @@ st.markdown(
             background-color: #00A550;
             color: #FFFFFF;
             border: none;
-            padding: 10px;
+            padding: 80px 10px 10px;
             max-width: 1600px;
             margin: 0 auto;
+        }
+        [data-testid="collapsedControl"] {
+            position: fixed;
+            top: 28px;
+            left: 28px;
+            z-index: 1100;
         }
         [data-testid="stSidebar"] {
             background: linear-gradient(145deg, #74c69d 0%, #2d6a4f 100%) !important;
@@ -32,11 +38,9 @@ st.markdown(
             margin: 10px;
             transition: box-shadow 0.3s ease;
         }
-        /* Sidebar hover effect */
         [data-testid="stSidebar"]:hover {
             box-shadow: 0 12px 24px rgba(0,0,0,0.3);
         }
-        /* Sidebar title styling */
         [data-testid="stSidebar"] .title {
             font-size: 28px !important;
             font-weight: bold;
@@ -44,7 +48,6 @@ st.markdown(
             margin-bottom: 16px;
             color: #FFFFFF !important;
         }
-        /* Sidebar buttons */
         [data-testid="stSidebar"] button {
             width: 100% !important;
             background-color: #228B22 !important;
@@ -64,7 +67,7 @@ st.markdown(
         .stats-left {
             position: fixed;
             top: 20px;
-            left: 20px;
+            left: 80px;
             color: #FFFFFF;
             font-size: 24px;
             font-weight: bold;
@@ -73,9 +76,13 @@ st.markdown(
             position: fixed;
             top: 20px;
             right: 20px;
-            color: #FFFFFF;
+            background-color: rgba(255,255,255,0.8);
+            color: #228B22;
+            padding: 6px 12px;
+            border-radius: 8px;
             font-size: 24px;
             font-weight: bold;
+            z-index: 1000;
         }
         input, .stTextInput>div>div>input,
         .stDateInput>div>div>input,
@@ -86,14 +93,13 @@ st.markdown(
             border: 2px solid #000000 !important;
             border-radius: 4px !important;
         }
-        /* Style the add-assignment form container */
         form#form_add, .stForm {
             background-color: #FFFFFF !important;
-            border: 2px solid #000000 !important;
-            border-radius: 8px !important;
+            border: 0.5px solid #000000 !important;
+            border-radius: 4px !important;
             padding: 16px !important;
+            color: #000000 !important;
         }
-        
         .card {
             width: 160px;
             height: 200px;
@@ -127,6 +133,16 @@ st.markdown(
             margin: 20px 0;
         }
     </style>
+    <script>
+        window.addEventListener('scroll', () => {
+            const maxSize = 200;
+            const minSize = 60;
+            const scrollY = window.scrollY;
+            const h1 = document.querySelector('h1');
+            const newSize = Math.max(minSize, maxSize - scrollY / 3);
+            if (h1) h1.style.fontSize = newSize + 'px';
+        });
+    </script>
     <script>
         window.addEventListener('scroll', () => {
             const maxSize = 200;
