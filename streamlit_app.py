@@ -25,7 +25,7 @@ st.markdown(
             color: #FFFFFF;
             border: 1px solid #FFFFFF;
             padding: 10px;
-            max-width: 1200px;
+            max-width: 1000px;
             margin: 0 auto;
         }
         h1 {
