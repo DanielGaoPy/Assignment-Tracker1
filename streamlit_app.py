@@ -151,13 +151,19 @@ def load_assignments(flag):
 PLANTS = [
     "Monstera deliciosa","Ficus lyrata","Golden Pothos","Palm Tree",
     "Cactus","Cherry Blossom","Clover","Red Apple","Green Apple",
-    "Rose","Tulip","Sunflower","Banana","Grape","Strawberry"
+    "Rose","Tulip","Sunflower","Banana","Grape","Strawberry",
+    "Lemon","Orange","Watermelon","Pineapple","Cherry","Peach",
+    "Mango","Avocado","Bamboo","Fern","Herb","Four Leaf Clover",
+    "Maple Leaf","Mushroom","Sheaf","Evergreen","Blossom",
+    "Hibiscus","Daisy","Pine Tree","Tree","Bush"
 ]
 EMOJIS = [
-    "🌱","🌿","🍃","🌴","🌵","🌼","🍀","🍎","🍏",
-    "🌹","🌷","🌻","🍌","🍇","🍓","🌿","🌿"
+    "🌱","🌿","🍃","🌴","🌵","🌸","🍀","🍎","🍏",
+    "🌹","🌷","🌻","🍌","🍇","🍓","🍋","🍊","🍉",
+    "🍍","🍒","🍑","🥭","🥑","🎋","🌲","🌾","🍁",
+    "🍄","🎄","🎍","💐","🌼","🌺","🥀","🌳","🌴"
 ]
-EMOJI_MAP = {PLANTS[i]: EMOJIS[i % len(EMOJIS)] for i in range(len(PLANTS))}
+EMOJI_MAP = {PLANTS[i]: EMOJIS[i] for i in range(len(PLANTS))}
 CATALOG_RARITY = {p: random.choices(RARITY_CATS, weights=RARITY_WEIGHTS, k=1)[0] for p in PLANTS}
 
 # ----------------------------------------------------------------------------
