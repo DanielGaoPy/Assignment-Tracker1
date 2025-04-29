@@ -5,16 +5,7 @@ import time
 from datetime import date, datetime, time as dtime
 
 # ----------------------------------------------------------------------------
-# ▶ Page configuration
-# ----------------------------------------------------------------------------
-st.set_page_config(
-    page_title="Plant-Based Assignment Tracker",
-    page_icon="🌿",
-    layout="wide"
-)
-
-# ----------------------------------------------------------------------------
-# ▶ Custom CSS
+# ▶ Custom CSS & Dynamic Title
 # ----------------------------------------------------------------------------
 st.markdown(
     """
@@ -30,12 +21,15 @@ st.markdown(
         [data-testid="stSidebar"] {
             background-color: #FFFFFF !important;
             color: #000000 !important;
+            border-radius: 12px;
+            padding: 16px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
         }
         h1 {
             text-align: center;
             margin-bottom: 20px;
-            font-size: 120px;
-            transition: font-size 0.1s ease-out;
+            font-size: 200px;
+            transition: font-size 0.2s ease-out;
         }
         .stats-left {
             position: fixed;
@@ -53,6 +47,13 @@ st.markdown(
             color: #000000 !important;
             border: 1px solid #000000 !important;
             border-radius: 2px !important;
+        }
+        /* Make form container white for assignment inputs */
+        .stForm, form#form_add {
+            background-color: #FFFFFF !important;
+            color: #000000 !important;
+            padding: 12px !important;
+            border-radius: 4px !important;
         }
         .card {
             width: 160px;
@@ -89,172 +90,17 @@ st.markdown(
     </style>
     <script>
         window.addEventListener('scroll', () => {
-            const maxSize = 120;
-            const minSize = 40;
-            const scroll = window.scrollY;
+            const maxSize = 200;
+            const minSize = 60;
+            const scrollY = window.scrollY;
             const h1 = document.querySelector('h1');
-            const newSize = Math.max(minSize, maxSize - scroll / 5);
+            const newSize = Math.max(minSize, maxSize - scrollY / 3);
             if (h1) h1.style.fontSize = newSize + 'px';
         });
     </script>
     """,
     unsafe_allow_html=True
 )
-
-# ----------------------------------------------------------------------------
-# ▶ Database setup
-# ----------------------------------------------------------------------------
-conn = sqlite3.connect('assignments.db', check_same_thread=False)
-c = conn.cursor()
-for col, props in [('rarity', "TEXT NOT NULL DEFAULT ''"), ('cost', "INTEGER NOT NULL DEFAULT 0")]:
-    try:
-        c.execute(f"ALTER TABLE plants ADD COLUMN {col} {props}")
-    except sqlite3.OperationalError:
-        pass
-c.execute("""
-CREATE TABLE IF NOT EXISTS assignments (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    course TEXT NOT NULL,
-    assignment TEXT NOT NULL,
-    type TEXT NOT NULL,
-    due_date TEXT NOT NULL,
-    due_time TEXT NOT NULL,
-    completed INTEGER NOT NULL DEFAULT 0
-)
-""")
-c.execute("""
-CREATE TABLE IF NOT EXISTS plants (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    name TEXT NOT NULL,
-    awarded_at TEXT NOT NULL,
-    rarity TEXT NOT NULL DEFAULT '',
-    cost INTEGER NOT NULL DEFAULT 0
-)
-""")
-conn.commit()
-
-# ----------------------------------------------------------------------------
-# ▶ Configuration
-# ----------------------------------------------------------------------------
-POINTS_MAP = {"Homework":1, "Quiz":2, "Paper":3, "Project":4, "Test":4, "Mid-Term":5, "Final":10}
-RARITY_CATS = ["Common","Rare","Epic","Legendary"]
-RARITY_WEIGHTS = [0.5,0.3,0.15,0.05]
-ROLL_COST = 5
-COLORS = {
-    "Common":"#e6ffe6",
-    "Rare":"#4da6ff",
-    "Epic":"#b84dff",
-    "Legendary":"#ffd11a"
-}
-
-# ----------------------------------------------------------------------------
-# ▶ Helper functions
-# ----------------------------------------------------------------------------
-def get_balance():
-    return sum(POINTS_MAP.get(r[0],0) for r in c.execute("SELECT type FROM assignments WHERE completed=1"))
-
-def load_assignments(flag):
-    return c.execute(
-        "SELECT id, course, assignment, type, due_date, due_time FROM assignments WHERE completed=? ORDER BY due_date, due_time",
-        (flag,)
-    ).fetchall()
-
-# Catalog data
-PLANTS = [
-    "Monstera deliciosa","Ficus lyrata","Golden Pothos","Palm Tree",
-    "Cactus","Cherry Blossom","Clover","Red Apple","Green Apple",
-    "Rose","Tulip","Sunflower","Banana","Grape","Strawberry",
-    "Lemon","Orange","Watermelon","Pineapple","Cherry","Peach",
-    "Mango","Avocado","Bamboo","Fern","Herb","Four Leaf Clover",
-    "Maple Leaf","Mushroom","Sheaf","Evergreen","Blossom",
-    "Hibiscus","Daisy","Pine Tree","Tree","Bush"
-]
-EMOJIS = [
-    "🌱","🌿","🍃","🌴","🌵","🌸","🍀","🍎","🍏",
-    "🌹","🌷","🌻","🍌","🍇","🍓","🍋","🍊","🍉",
-    "🍍","🍒","🍑","🥭","🥑","🎋","🌲","🌾","🍁",
-    "🍄","🎄","🎍","💐","🌼","🌺","🥀","🌳","🌴"
-]
-EMOJI_MAP = {PLANTS[i]: EMOJIS[i % len(EMOJIS)] for i in range(len(PLANTS))}
-CATALOG_RARITY = {p: random.choices(RARITY_CATS, weights=RARITY_WEIGHTS, k=1)[0] for p in PLANTS}
-
-# ----------------------------------------------------------------------------
-# ▶ Award free plant
-# ----------------------------------------------------------------------------
-def award_plant():
-    total = c.execute("SELECT COUNT(*) FROM assignments WHERE completed=1").fetchone()[0]
-    due = total // 5
-    owned = [r[0] for r in c.execute("SELECT name FROM plants")]
-    while len(owned) < due:
-        choice = random.choice([p for p in PLANTS if p not in owned])
-        rarity = random.choices(RARITY_CATS, weights=RARITY_WEIGHTS, k=1)[0]
-        c.execute(
-            "INSERT INTO plants(name,awarded_at,rarity,cost) VALUES(?,?,?,?)",
-            (choice, datetime.now().isoformat(), rarity, 0)
-        )
-        conn.commit()
-        owned.append(choice)
-        st.balloons()
-        st.success(f"Unlocked: {EMOJI_MAP[choice]} {choice} ({rarity})")
-
-# ----------------------------------------------------------------------------
-# ▶ Roll for a plant
-# ----------------------------------------------------------------------------
-def roll_plant():
-    bal = get_balance()
-    if bal < ROLL_COST:
-        st.error(f"Not enough points (need {ROLL_COST}, have {bal})")
-        return
-    c.execute(
-        "INSERT INTO plants(name,awarded_at,rarity,cost) VALUES(?,?,?,?)",
-        ("RollCost", datetime.now().isoformat(), "", ROLL_COST)
-    )
-    conn.commit()
-    ph = st.empty()
-    for _ in range(20):
-        temp = random.choice(PLANTS)
-        ph.markdown(f"### Rolling: {EMOJI_MAP[temp]} {temp}")
-        time.sleep(0.05)
-    pick = random.choices(
-        PLANTS,
-        weights=[RARITY_WEIGHTS[RARITY_CATS.index(CATALOG_RARITY[p])] for p in PLANTS],
-        k=1
-    )[0]
-    existing = [r[0] for r in c.execute("SELECT name FROM plants")]
-    if pick in existing:
-        c.execute(
-            "INSERT INTO plants(name,awarded_at,rarity,cost) VALUES(?,?,?,?)",
-            (pick, datetime.now().isoformat(), "Duplicate", -1)
-        )
-        conn.commit()
-        ph.markdown(f"🎲 Duplicate! Refunded 1 point. {EMOJI_MAP[pick]} {pick}")
-    else:
-        rarity = random.choices(RARITY_CATS, weights=RARITY_WEIGHTS, k=1)[0]
-        c.execute(
-            "INSERT INTO plants(name,awarded_at,rarity,cost) VALUES(?,?,?,?)",
-            (pick, datetime.now().isoformat(), rarity, 0)
-        )
-        conn.commit()
-        ph.markdown(f"🎲 You got: {EMOJI_MAP[pick]} {pick} ({rarity})")
-    st.balloons()
-
-# ----------------------------------------------------------------------------
-# ▶ Sidebar Navigation
-# ----------------------------------------------------------------------------
-if 'page' not in st.session_state:
-    st.session_state.page = 'Add'
-with st.sidebar:
-    st.title("📋 Navigate")
-    if st.button("➕ Add Assignment"): st.session_state.page='Add'
-    if st.button("⏳ Upcoming"):       st.session_state.page='Upcoming'
-    if st.button("✅ Completed"):      st.session_state.page='Completed'
-    if st.button("🌿 Plant Catalog"):  st.session_state.page='Plant Catalog'
-    if st.button("🌳 Collected Plants"):st.session_state.page='Collected Plants'
-
-# Header
-# Display collected assignment points in top-left
-points = get_balance()
-st.markdown(f"<div class='stats-left'>Points: {points}</div>", unsafe_allow_html=True)
 st.markdown('<h1 style="font-size:120px;">🌿</h1>', unsafe_allow_html=True)
 
 # Page Content
