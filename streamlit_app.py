@@ -14,6 +14,7 @@ st.set_page_config(
 )
 
 # ----------------------------------------------------------------------------
+# ----------------------------------------------------------------------------
 # ▶ Custom CSS
 # ----------------------------------------------------------------------------
 st.markdown(
@@ -37,11 +38,14 @@ st.markdown(
             font-size: 24px;
             font-weight: bold;
         }
-        input, textarea, .stTextInput>div>div>input, .stDateInput>div>div>input {
+        input, .stTextInput>div>div>input,
+        .stDateInput>div>div>input,
+        .stTimeInput>div>div>input,
+        .stSelectbox>div>div {
             background-color: #FFFFFF !important;
             color: #000000 !important;
-            border: 0.5px solid #FFFFFF !important;
-            border-radius: 4px !important;
+            border: 2px solid #000000 !important;
+            border-radius: 2px !important;
         }
         .card {
             padding: 16px;
@@ -56,6 +60,15 @@ st.markdown(
             justify-content: center;
             margin-bottom: 20px;
         }
+        button {
+            background-color: #FFFFFF !important;
+            color: #228B22 !important;
+            border: 2px solid #FFFFFF !important;
+            border-radius: 8px !important;
+            padding: 8px 16px !important;
+            font-weight: bold;
+            margin: 5px;
+        }
         hr {
             border-top: 2px solid #FFFFFF;
             margin: 20px 0;
@@ -64,8 +77,6 @@ st.markdown(
     """,
     unsafe_allow_html=True
 )
-
-# ----------------------------------------------------------------------------
 # ▶ Database setup
 # ----------------------------------------------------------------------------
 conn = sqlite3.connect('assignments.db', check_same_thread=False)
