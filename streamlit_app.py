@@ -168,7 +168,8 @@ st.markdown("""
   .stSidebar { background:linear-gradient(145deg,#74c69d,#2d6a4f) !important; border-radius:1rem; padding:1rem; }
   .stSidebar button { width:100% !important; margin:0.5rem 0 !important; background:#228B22 !important; color:#fff !important; border:none !important; border-radius:0.5rem !important; padding:0.5rem 0 !important; }
   .stForm { background:#fff; color:#000; border:1px solid #000; border-radius:0.5rem; padding:1rem; }
-  input, select, .stSelectbox>div>div>div, .stDateInput>div>div>input, .stTimeInput>div>div>input {
+  input, select, .stSelectbox>div>div>div, .stDateInput>div>div>input,
+        .stTimeInput>div>div>input, input[type="time"], input[type="date"] {
             background: #fff !important;
             color: #000 !important;
             border: 0.5px solid #000 !important;
@@ -207,11 +208,17 @@ st.markdown("<div class='app-container'>", unsafe_allow_html=True)
 if page == "Add":
     st.subheader("➕ Add Assignment")
     with st.form("form_add", clear_on_submit=True):
-        course = st.text_input("Course Name")
-        assign_ = st.text_input("Assignment Title")
-        a_type = st.selectbox("Type", list(POINTS_MAP.keys()))
-        due_d = st.date_input("Due Date", date.today())
-        due_t = st.time_input("Due Time", dtime(23,59))
+        # Field labels
+        st.markdown("**Course Name**")
+        course = st.text_input("", key="course", placeholder="e.g. Math 101")
+        st.markdown("**Assignment Title**")
+        assign_ = st.text_input("", key="assign", placeholder="e.g. Homework 1")
+        st.markdown("**Assignment Type**")
+        a_type = st.selectbox("", list(POINTS_MAP.keys()), key="atype")
+        st.markdown("**Due Date**")
+        due_d = st.date_input("", date.today(), key="dued")
+        st.markdown("**Due Time**")
+        due_t = st.time_input("", dtime(23,59), key="duet")
         if st.form_submit_button("Add Assignment"):
             if course and assign_:
                 c.execute(
