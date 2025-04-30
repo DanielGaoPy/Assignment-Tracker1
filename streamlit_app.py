@@ -176,16 +176,13 @@ st.markdown("""
             border-radius: 0.5rem !important;
         }
   .card { width:8rem; height:10rem; margin:0.5rem; padding:1rem; background:#fff; border-radius:1rem; box-shadow:0 0.5rem 1rem rgba(0,0,0,0.1); text-align:center; display:inline-block; }
-</style> { background:#fff; color:#000; border:1px solid #000; border-radius:0.5rem; padding:1rem; }
-  input, select, .stSelectbox>div>div>div,
-        .stTimeInput>div>div>input,
-        .stDateInput>div>div>input {
-            background: #fff !important;
-            color: #000 !important;
-            border: 0.5px solid #000 !important;
-            border-radius: 0.5rem !important;
-        }
-  .card { width:8rem; height:10rem; margin:0.5rem; padding:1rem; background:#fff; border-radius:1rem; box-shadow:0 0.5rem 1rem rgba(0,0,0,0.1); text-align:center; display:inline-block; }
+</style>
+""", unsafe_allow_html=True)
+# Tweak form spacing and button styling
+st.markdown("""
+<style>
+    .stForm .row-widget { margin-bottom: 4px !important; }
+    .stButton>button { background-color: #FFFFFF !important; color: #000000 !important; }
 </style>
 """, unsafe_allow_html=True)
 
