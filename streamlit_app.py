@@ -168,11 +168,21 @@ st.markdown("""
   .stSidebar { background:linear-gradient(145deg,#74c69d,#2d6a4f) !important; border-radius:1rem; padding:1rem; }
   .stSidebar button { width:100% !important; margin:0.5rem 0 !important; background:#228B22 !important; color:#fff !important; border:none !important; border-radius:0.5rem !important; padding:0.5rem 0 !important; }
   .stForm { background:#fff; color:#000; border:1px solid #000; border-radius:0.5rem; padding:1rem; }
-  input, select {
-            background:#fff !important;
-            color:#000 !important;
-            border:0.5px solid #000 !important;
-            border-radius:0.5rem !important;
+  input, select, .stSelectbox>div>div>div, .stDateInput>div>div>input, .stTimeInput>div>div>input {
+            background: #fff !important;
+            color: #000 !important;
+            border: 0.5px solid #000 !important;
+            border-radius: 0.5rem !important;
+        }
+  .card { width:8rem; height:10rem; margin:0.5rem; padding:1rem; background:#fff; border-radius:1rem; box-shadow:0 0.5rem 1rem rgba(0,0,0,0.1); text-align:center; display:inline-block; }
+</style> { background:#fff; color:#000; border:1px solid #000; border-radius:0.5rem; padding:1rem; }
+  input, select, .stSelectbox>div>div>div,
+        .stTimeInput>div>div>input,
+        .stDateInput>div>div>input {
+            background: #fff !important;
+            color: #000 !important;
+            border: 0.5px solid #000 !important;
+            border-radius: 0.5rem !important;
         }
   .card { width:8rem; height:10rem; margin:0.5rem; padding:1rem; background:#fff; border-radius:1rem; box-shadow:0 0.5rem 1rem rgba(0,0,0,0.1); text-align:center; display:inline-block; }
 </style>
