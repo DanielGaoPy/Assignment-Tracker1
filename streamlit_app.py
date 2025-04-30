@@ -160,7 +160,9 @@ def roll_plant():
 # ----------------------------------------------------------------------------
 st.markdown("""
 <style>
-  .app-container { padding:1rem; background:#00A550; }
+        [data-testid="stAppViewContainer"] { background-color: #00A550 !important; }
+        body { background-color: #00A550 !important; }
+        .app-container { padding:1rem; background:#00A550; }
   h1 { text-align:center; font-size:4rem; margin:0.5rem 0; }
   .stats-right { position:fixed; top:20px; right:20px; background:rgba(255,255,255,0.8); color:#228B22; padding:0.5rem 1rem; border-radius:0.5rem; font-weight:bold; }
   .stSidebar { background:linear-gradient(145deg,#74c69d,#2d6a4f) !important; border-radius:1rem; padding:1rem; }
