@@ -218,7 +218,8 @@ elif page == "Upcoming":
         id_, course, assign_, a_type, d_date, d_time = row
         dt = datetime.fromisoformat(f"{d_date}T{d_time}")
         st.markdown(f"**{course} - {assign_}** ({a_type})  
-                    Due: {dt:%Y-%m-%d %H:%M}")
+Due: {dt:%Y-%m-%d %H:%M}")
+        Due: {dt:%Y-%m-%d %H:%M}")
         c1, c2 = st.columns([0.9, 0.1])
         if c1.button("✅ Done", key=f"done_{id_}"):
             c.execute("UPDATE assignments SET completed=1 WHERE id=?", (id_,))
@@ -233,6 +234,7 @@ elif page == "Completed":
     for row in load_assignments(True):
         id_, course, assign_, a_type, d_date, d_time = row
         st.markdown(f"~~{course} - {assign_}~~ ({a_type})  
+Completed: {d_date} {d_time}")  
                     Completed: {d_date} {d_time}")
         if st.button("🗑️ Remove", key=f"rem_{id_}"):
             c.execute("DELETE FROM assignments WHERE id=?", (id_,))
