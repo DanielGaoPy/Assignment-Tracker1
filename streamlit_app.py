@@ -46,7 +46,7 @@ EMOJI_MAP = {PLANTS[i]: EMOJIS[i % len(EMOJIS)] for i in range(len(PLANTS))}
 # ----------------------------------------------------------------------------
 # ▶ Database Helper
 # ----------------------------------------------------------------------------
-@st.experimental_singleton
+
 def init_db():
     conn = sqlite3.connect('assignments.db', check_same_thread=False)
     c = conn.cursor()
