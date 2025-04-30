@@ -217,7 +217,17 @@ elif page == "Upcoming":
     for row in load_assignments(False):
         id_, course, assign_, a_type, d_date, d_time = row
         dt = datetime.fromisoformat(f"{d_date}T{d_time}")
+        # Properly formatted single-line f-string
         st.markdown(f"**{course} - {assign_}** ({a_type})  
+Due: {dt:%Y-%m-%d %H:%M}")
+        c1, c2 = st.columns([0.9, 0.1])
+        if c1.button("✅ Done", key=f"done_{id_}"):
+            c.execute("UPDATE assignments SET completed=1 WHERE id=?", (id_,))
+            conn.commit(); award_free_plants(); st.experimental_rerun()
+        if c2.button("❌", key=f"del_{id_}"):
+            c.execute("DELETE FROM assignments WHERE id=?", (id_,))
+            conn.commit(); st.experimental_rerun()
+        st.markdown("---")  
 Due: {dt:%Y-%m-%d %H:%M}")
         Due: {dt:%Y-%m-%d %H:%M}")
         c1, c2 = st.columns([0.9, 0.1])
